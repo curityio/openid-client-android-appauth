@@ -17,15 +17,13 @@
 package io.curity.identityserver.client
 
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
-import android.content.ContentValues.TAG
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import io.curity.identityserver.client.ErrorActivity.Companion.handleError
-import org.json.JSONObject
+import org.jose4j.jwt.consumer.JwtConsumerBuilder
 
 class AuthenticatedActivity : AppCompatActivity() {
 
@@ -33,27 +31,35 @@ class AuthenticatedActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_authenticated)
 
-
-        if (intent.extras == null) return showError("No data in intent")
-        if (intent.extras?.get("id_token_claims") == null) {
-            return showError("Do not find id token claims")
-        }
-
-        val jsonString = intent.extras?.get("id_token_claims") as String
-        val jsonObject = JSONObject(jsonString)
-        val subject = jsonObject["sub"]
-        val authTime = jsonObject["auth_time"]
-        val acr = jsonObject["acr"]
-        val title = findViewById<TextView>(R.id.hello_subject)
-        title.text = getString(R.string.hello_subject, subject)
-
-        val authnDescription = findViewById<TextView>(R.id.authn_description)
-        authnDescription.text = getString(R.string.authn_description, authTime, acr)
-
         val logoutButton = findViewById<Button>(R.id.logout)
         logoutButton.setOnClickListener(logout())
 
+        if (intent.hasExtra("id_token")) {
+            viewDataFromIdToken(intent.getStringExtra("id_token"))
+        }
+        else {
+            showError("Did not receive an id token")
+        }
     }
+
+    private fun viewDataFromIdToken(idToken: String?) {
+
+        val jwtConsumer = JwtConsumerBuilder()
+            .setSkipSignatureVerification() // Not required in code flow, since the token is fetched from the server using TLS
+            .setRequireSubject()
+            .setAllowedClockSkewInSeconds(30)
+            .setExpectedIssuer("https://dlindau.ngrok.io/~")
+            .setExpectedAudience("app-auth")
+            .build()
+
+        val jwtClaims = jwtConsumer.processToClaims(idToken)
+        val title = findViewById<TextView>(R.id.hello_subject)
+        title.text = getString(R.string.hello_subject, jwtClaims.subject)
+        val authnDescription = findViewById<TextView>(R.id.authn_description)
+        authnDescription.text = getString(R.string.authn_description,
+            jwtClaims.getNumericDateClaimValue("auth_time"), jwtClaims.getClaimValueAsString("acr"))
+    }
+
 
     private fun logout(): (View) -> Unit = {
         val logoutIntent = Intent(applicationContext, MainActivity::class.java)
