@@ -24,6 +24,7 @@ import android.util.Log
 import android.widget.Button
 import androidx.annotation.MainThread
 import androidx.appcompat.app.AppCompatActivity
+import io.curity.identityserver.client.ErrorActivity.Companion.handleError
 import kotlinx.android.synthetic.main.activity_main.*
 import net.openid.appauth.*
 import org.jose4j.jwt.consumer.JwtConsumerBuilder
@@ -64,21 +65,13 @@ class MainActivity : AppCompatActivity() {
     ) {
         if (ex != null || config == null) {
             Log.i(TAG, "Failed to retrieve discovery document")
-            handleError("Failed to fetch server configuration", ex?.errorDescription)
-            return
+            return handleError(this, "Failed to fetch server configuration", ex?.errorDescription)
         }
 
         Log.i(TAG, "Discovery document retrieved")
         Log.d(TAG, config.toJsonString())
         serviceConfiguration = config
         authState = AuthState(serviceConfiguration)
-    }
-
-    private fun handleError(error: String?, errorDescription: String?) {
-        val viewError = Intent(applicationContext, ErrorActivity::class.java)
-        viewError.putExtra(ErrorActivity.ERROR_KEY, error ?: "Unknown error")
-        viewError.putExtra(ErrorActivity.ERROR_DESCRIPTION_KEY, errorDescription ?: "")
-        startActivity(viewError)
     }
 
     private fun buildAuthorizationRequest(): AuthorizationRequest {
@@ -108,11 +101,11 @@ class MainActivity : AppCompatActivity() {
             }
             error != null -> {
                 Log.e(TAG, "Got an error from authorization request: {}", error)
-                throw error
+                return handleError(this, "Authorization request failed", error.errorDescription)
             }
             else -> {
                 Log.e(TAG, "Got neither response or error in authorization callback")
-                throw RuntimeException("Got no response in authorization callback")
+                return handleError(this, "No response in authorization callback", null)
             }
         }
         authorizationService.performTokenRequest(response.createTokenExchangeRequest(),

@@ -24,6 +24,7 @@ import android.content.ContentValues.TAG
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
+import io.curity.identityserver.client.ErrorActivity.Companion.handleError
 import org.json.JSONObject
 
 class AuthenticatedActivity : AppCompatActivity() {
@@ -60,8 +61,6 @@ class AuthenticatedActivity : AppCompatActivity() {
     }
 
     private fun showError(error: String) {
-        val authnDescription = findViewById<TextView>(R.id.authn_description)
-        authnDescription.text = error
-        Log.w(TAG, error)
+        handleError(this, ErrorActivity.GENERIC_ERROR, error)
     }
 }
