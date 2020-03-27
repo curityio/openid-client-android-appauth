@@ -62,8 +62,9 @@ class MainActivity : AppCompatActivity() {
     private fun handleConfigurationRetrievalResult(config: AuthorizationServiceConfiguration?,
                                                    ex: AuthorizationException?
     ) {
-        if (config == null) {
-            Log.i(TAG, "Failed to retrieve discovery document", ex)
+        if (ex != null || config == null) {
+            Log.i(TAG, "Failed to retrieve discovery document")
+            handleError("Failed to fetch server configuration", ex?.errorDescription)
             return
         }
 
@@ -71,6 +72,13 @@ class MainActivity : AppCompatActivity() {
         Log.d(TAG, config.toJsonString())
         serviceConfiguration = config
         authState = AuthState(serviceConfiguration)
+    }
+
+    private fun handleError(error: String?, errorDescription: String?) {
+        val viewError = Intent(applicationContext, ErrorActivity::class.java)
+        viewError.putExtra(ErrorActivity.ERROR_KEY, error ?: "Unknown error")
+        viewError.putExtra(ErrorActivity.ERROR_DESCRIPTION_KEY, errorDescription ?: "")
+        startActivity(viewError)
     }
 
     private fun buildAuthorizationRequest(): AuthorizationRequest {
