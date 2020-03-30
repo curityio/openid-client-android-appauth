@@ -24,7 +24,6 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import io.curity.identityserver.client.ErrorActivity.Companion.handleError
 import io.curity.identityserver.client.error.ApplicationException
-import io.curity.identityserver.client.error.IllegalApplicationStateException
 import io.curity.identityserver.client.error.ServerCommunicationException
 import org.jose4j.jwt.consumer.InvalidJwtException
 import org.jose4j.jwt.consumer.JwtConsumerBuilder
@@ -39,17 +38,11 @@ class AuthenticatedActivity : AppCompatActivity() {
         logoutButton.setOnClickListener(logout())
 
         try {
-            handleIdToken()
+            val idToken = ApplicationStateManager.tokenResponse.idToken
+            viewDataFromIdToken(idToken)
         } catch (e: ApplicationException) {
             handleError(this, e.errorTitle, e.errorDescription)
         }
-    }
-
-    private fun handleIdToken() {
-        val idToken = intent.getStringExtra("id_token")
-            ?: throw IllegalApplicationStateException("No ID token in intent")
-
-        viewDataFromIdToken(idToken)
     }
 
     private fun viewDataFromIdToken(idToken: String?) {

@@ -61,9 +61,8 @@ class WaitingActivity : AppCompatActivity() {
             when {
                 tokenResponse != null -> {
                     Log.i(TAG, "Got a token response: ${tokenResponse.idToken}")
-                    val authenticatedIntent = Intent(this, AuthenticatedActivity::class.java)
-                    authenticatedIntent.putExtra("id_token", tokenResponse.idToken)
-                    startActivity(authenticatedIntent)
+                    ApplicationStateManager.tokenResponse = tokenResponse
+                    startActivity(Intent(this, AuthenticatedActivity::class.java))
                 }
                 else -> {
                     throw ServerCommunicationException("Token request failed",

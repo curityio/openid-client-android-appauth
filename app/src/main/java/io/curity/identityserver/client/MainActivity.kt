@@ -19,7 +19,6 @@ package io.curity.identityserver.client
 import android.app.PendingIntent
 import android.content.ContentValues.TAG
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button

@@ -20,6 +20,7 @@ import io.curity.identityserver.client.error.IllegalApplicationStateException
 import net.openid.appauth.AuthState
 import net.openid.appauth.AuthorizationServiceConfiguration
 import net.openid.appauth.RegistrationResponse
+import net.openid.appauth.TokenResponse
 
 object ApplicationStateManager {
     private lateinit var authState: AuthState
@@ -43,6 +44,15 @@ object ApplicationStateManager {
         set(registrationResponse) {
             authState.update(registrationResponse)
             clientId = registrationResponse.clientId
+        }
+
+    var tokenResponse: TokenResponse
+        get() {
+            return authState.lastTokenResponse
+                ?: throw IllegalApplicationStateException("No recent tokens")
+        }
+        set(tokenResponse) {
+            authState.update(tokenResponse, null)
         }
 
     fun isRegistered(): Boolean {
