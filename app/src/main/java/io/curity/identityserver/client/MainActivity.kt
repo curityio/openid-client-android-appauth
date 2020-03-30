@@ -50,13 +50,11 @@ class MainActivity : AppCompatActivity() {
                 performAuthorizationRequest()
             }
 
-            if(ApplicationStateManager.serverConfiguration == null) {
-                AuthorizationServiceConfiguration.fetchFromIssuer(
-                    Uri.parse("https://dlindau.ngrok.io/~")) { config, ex ->
-                    handleConfigurationRetrievalResult(config, ex)
-                    if (!isRegistered()) {
-                        registerClient()
-                    }
+            AuthorizationServiceConfiguration.fetchFromIssuer(
+                Uri.parse("https://dlindau.ngrok.io/~")) { config, ex ->
+                handleConfigurationRetrievalResult(config, ex)
+                if (!isRegistered()) {
+                    registerClient()
                 }
             }
 
@@ -126,7 +124,8 @@ class MainActivity : AppCompatActivity() {
             "Invalid client configuration", "No client id")
         val redirectUri = Uri.parse("io.curity.client:/callback")
 
-        return AuthorizationRequest.Builder(ApplicationStateManager.serverConfiguration, clientId, "code",
+        return AuthorizationRequest.Builder(ApplicationStateManager.serverConfiguration, clientId,
+                "code",
                 redirectUri)
             .setScopes("openid profile")
             .build()
