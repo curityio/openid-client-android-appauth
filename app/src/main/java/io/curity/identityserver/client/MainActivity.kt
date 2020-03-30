@@ -25,6 +25,10 @@ import android.util.Log
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import io.curity.identityserver.client.ErrorActivity.Companion.handleError
+import io.curity.identityserver.client.error.ApplicationException
+import io.curity.identityserver.client.error.GENERIC_ERROR
+import io.curity.identityserver.client.error.IllegalClientStateException
+import io.curity.identityserver.client.error.ServerCommunicationException
 import kotlinx.android.synthetic.main.activity_main.*
 import net.openid.appauth.*
 
@@ -34,52 +38,94 @@ class MainActivity : AppCompatActivity() {
         const val REQUEST_CODE_AUTHORIZATION_INTENT = 100
     }
 
-    private lateinit var serviceConfiguration: AuthorizationServiceConfiguration
     private lateinit var authorizationService: AuthorizationService
-    private lateinit var authState: AuthState
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
+        try {
+            findViewById<Button>(R.id.loginButton).setOnClickListener {
+                performAuthorizationRequest()
+            }
 
-        findViewById<Button>(R.id.loginButton).setOnClickListener {
-            val request = buildAuthorizationRequest()
-            authorizationService.performAuthorizationRequest(
-                request,
-                PendingIntent.getActivity(this, REQUEST_CODE_AUTHORIZATION_INTENT,
-                    Intent(this, WaitingActivity::class.java), 0))
+            AuthorizationServiceConfiguration.fetchFromIssuer(
+                Uri.parse("https://dlindau.ngrok.io/~")) { config, ex ->
+                handleConfigurationRetrievalResult(config, ex)
+                if (!isRegistered()) {
+                    registerClient()
+                }
+            }
+            authorizationService = AuthorizationService(this)
+        } catch (exception: ApplicationException) {
+            handleError(this, exception.errorTitle, exception.errorDescription ?: GENERIC_ERROR)
         }
+    }
 
-        AuthorizationServiceConfiguration.fetchFromIssuer(
-            Uri.parse("https://dlindau.ngrok.io/~")) { config, ex ->
-            handleConfigurationRetrievalResult(config, ex)
+    private fun registerClient() {
+        val nonTemplatizedRequest =
+            RegistrationRequest.Builder(AuthStateManager.configuration, listOf(
+                    Uri.parse("io.curity.client:/callback")))
+                .setGrantTypeValues(listOf(GrantTypeValues.AUTHORIZATION_CODE))
+                .setAdditionalParameters(mapOf("scope" to "openid profile"))
+                .build()
+
+        authorizationService.performRegistrationRequest(nonTemplatizedRequest,
+            handleRegistrationResponse())
+
+    }
+
+    private fun isRegistered(): Boolean {
+        return AuthStateManager.isClientRegistered()
+    }
+
+    private fun handleRegistrationResponse(): (RegistrationResponse?, AuthorizationException?) -> Unit {
+        return { registrationResponse, authorizationException ->
+            when {
+                registrationResponse != null -> {
+                    AuthStateManager.registrationResponse = registrationResponse
+                }
+                else -> throw ServerCommunicationException("Failed to register",
+                    authorizationException?.errorDescription)
+            }
+
         }
+    }
 
-        authorizationService = AuthorizationService(this)
+    private fun performAuthorizationRequest() {
+        val request = buildAuthorizationRequest()
+        authorizationService.performAuthorizationRequest(
+            request,
+            PendingIntent.getActivity(this, REQUEST_CODE_AUTHORIZATION_INTENT,
+                Intent(this, WaitingActivity::class.java), 0))
     }
 
     private fun handleConfigurationRetrievalResult(config: AuthorizationServiceConfiguration?,
-                                                   ex: AuthorizationException?
-    ) {
+                                                   ex: AuthorizationException?) {
         if (ex != null || config == null) {
-            Log.i(TAG, "Failed to retrieve discovery document")
-            return handleError(this, "Failed to fetch server configuration", ex?.errorDescription)
+            Log.e(TAG, "Failed to retrieve discovery document")
+            throw ServerCommunicationException("Failed to fetch server configuration",
+                ex?.errorDescription)
         }
 
+        if (config.registrationEndpoint == null) {
+            throw ServerCommunicationException("Invalid server configuration",
+                "Server discovery doc did not contain a registration endpoint")
+        }
         Log.i(TAG, "Discovery document retrieved")
         Log.d(TAG, config.toJsonString())
-        serviceConfiguration = config
-        authState = AuthState(serviceConfiguration)
+        AuthStateManager.configuration = config
     }
 
     private fun buildAuthorizationRequest(): AuthorizationRequest {
-        val clientId = "app-auth"
+        val clientId = AuthStateManager.clientId ?: throw IllegalClientStateException(
+            "Invalid client configuration", "No client id")
         val redirectUri = Uri.parse("io.curity.client:/callback")
-        return AuthorizationRequest.Builder(serviceConfiguration, clientId, "code", redirectUri)
+
+        return AuthorizationRequest.Builder(AuthStateManager.configuration, clientId, "code",
+                redirectUri)
             .setScopes("openid profile")
-            .setPrompt(AuthorizationRequest.Prompt.LOGIN)
             .build()
     }
 

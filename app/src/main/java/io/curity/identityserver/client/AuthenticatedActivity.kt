@@ -23,6 +23,10 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import io.curity.identityserver.client.ErrorActivity.Companion.handleError
+import io.curity.identityserver.client.error.ApplicationException
+import io.curity.identityserver.client.error.IllegalClientStateException
+import io.curity.identityserver.client.error.ServerCommunicationException
+import org.jose4j.jwt.consumer.InvalidJwtException
 import org.jose4j.jwt.consumer.JwtConsumerBuilder
 
 class AuthenticatedActivity : AppCompatActivity() {
@@ -34,11 +38,13 @@ class AuthenticatedActivity : AppCompatActivity() {
         val logoutButton = findViewById<Button>(R.id.logout)
         logoutButton.setOnClickListener(logout())
 
-        if (intent.hasExtra("id_token")) {
-            viewDataFromIdToken(intent.getStringExtra("id_token"))
-        }
-        else {
-            showError("Did not receive an id token")
+        try {
+            val idToken = intent.getStringExtra("id_token")
+                ?: throw IllegalClientStateException("No ID token in intent")
+
+            viewDataFromIdToken(idToken)
+        } catch (e: ApplicationException) {
+            handleError(this, e.errorTitle, e.errorDescription)
         }
     }
 
@@ -48,11 +54,15 @@ class AuthenticatedActivity : AppCompatActivity() {
             .setSkipSignatureVerification() // Not required in code flow, since the token is fetched from the server using TLS
             .setRequireSubject()
             .setAllowedClockSkewInSeconds(30)
-            .setExpectedIssuer("https://dlindau.ngrok.io/~")
-            .setExpectedAudience("app-auth")
+            .setExpectedIssuer(AuthStateManager.configuration.discoveryDoc?.issuer)
+            .setExpectedAudience(AuthStateManager.clientId)
             .build()
 
-        val jwtClaims = jwtConsumer.processToClaims(idToken)
+        val jwtClaims = try {
+            jwtConsumer.processToClaims(idToken)
+        } catch (e: InvalidJwtException) {
+            throw ServerCommunicationException("Invalid ID Token", e.message)
+        }
         val title = findViewById<TextView>(R.id.hello_subject)
         title.text = getString(R.string.hello_subject, jwtClaims.subject)
         val authnDescription = findViewById<TextView>(R.id.authn_description)
@@ -64,9 +74,5 @@ class AuthenticatedActivity : AppCompatActivity() {
     private fun logout(): (View) -> Unit = {
         val logoutIntent = Intent(applicationContext, MainActivity::class.java)
         startActivity(logoutIntent)
-    }
-
-    private fun showError(error: String) {
-        handleError(this, ErrorActivity.GENERIC_ERROR, error)
     }
 }
