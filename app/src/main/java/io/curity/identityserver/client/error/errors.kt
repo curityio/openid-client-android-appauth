@@ -8,7 +8,5 @@ open class ApplicationException(val errorTitle: String,
 class ServerCommunicationException(errorTitle: String, errorDescription: String?) :
     ApplicationException(errorTitle, errorDescription)
 
-class IllegalApplicationStateException(errorTitle: String, errorDescription: String?) :
-    ApplicationException(errorTitle, errorDescription) {
-    constructor(errorDescription: String) : this(GENERIC_ERROR, errorDescription)
-}
+class IllegalApplicationStateException(errorDescription: String) :
+    ApplicationException(GENERIC_ERROR, errorDescription)
