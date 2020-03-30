@@ -39,13 +39,17 @@ class AuthenticatedActivity : AppCompatActivity() {
         logoutButton.setOnClickListener(logout())
 
         try {
-            val idToken = intent.getStringExtra("id_token")
-                ?: throw IllegalApplicationStateException("No ID token in intent")
-
-            viewDataFromIdToken(idToken)
+            handleIdToken()
         } catch (e: ApplicationException) {
             handleError(this, e.errorTitle, e.errorDescription)
         }
+    }
+
+    private fun handleIdToken() {
+        val idToken = intent.getStringExtra("id_token")
+            ?: throw IllegalApplicationStateException("No ID token in intent")
+
+        viewDataFromIdToken(idToken)
     }
 
     private fun viewDataFromIdToken(idToken: String?) {
