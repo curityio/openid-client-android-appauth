@@ -9,4 +9,4 @@ class ServerCommunicationException(errorTitle: String, errorDescription: String?
     ApplicationException(errorTitle, errorDescription)
 
 class IllegalApplicationStateException(errorDescription: String) :
-    ApplicationException(GENERIC_ERROR, errorDescription)
+    ApplicationException("Invalid application state", errorDescription)

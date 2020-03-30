@@ -120,8 +120,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun buildAuthorizationRequest(): AuthorizationRequest {
-        val clientId = ApplicationStateManager.clientId ?: throw IllegalApplicationStateException(
-            "Invalid client configuration", "No client id")
+        val clientId = ApplicationStateManager.clientId
+            ?: throw IllegalApplicationStateException("No client id in configuration")
         val redirectUri = Uri.parse("io.curity.client:/callback")
 
         return AuthorizationRequest.Builder(ApplicationStateManager.serverConfiguration, clientId,
