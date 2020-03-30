@@ -25,13 +25,14 @@ import android.util.Log
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import io.curity.identityserver.client.ErrorActivity.Companion.handleError
+import io.curity.identityserver.client.config.ApplicationConfig
 import io.curity.identityserver.client.error.ApplicationException
 import io.curity.identityserver.client.error.GENERIC_ERROR
 import io.curity.identityserver.client.error.IllegalApplicationStateException
 import io.curity.identityserver.client.error.ServerCommunicationException
 import kotlinx.android.synthetic.main.activity_main.*
 import net.openid.appauth.*
-
+import net.openid.appauth.AuthorizationServiceConfiguration.fetchFromIssuer
 
 class MainActivity : AppCompatActivity() {
     companion object {
@@ -50,8 +51,7 @@ class MainActivity : AppCompatActivity() {
                 performAuthorizationRequest()
             }
 
-            AuthorizationServiceConfiguration.fetchFromIssuer(
-                Uri.parse("https://dlindau.ngrok.io/~")) { config, ex ->
+            fetchFromIssuer(ApplicationConfig.issuer) { config, ex ->
                 handleConfigurationRetrievalResult(config, ex)
                 if (!isRegistered()) {
                     registerClient()
@@ -66,15 +66,14 @@ class MainActivity : AppCompatActivity() {
 
     private fun registerClient() {
         val nonTemplatizedRequest =
-            RegistrationRequest.Builder(ApplicationStateManager.serverConfiguration, listOf(
-                    Uri.parse("io.curity.client:/callback")))
+            RegistrationRequest.Builder(ApplicationStateManager.serverConfiguration,
+                    listOf(ApplicationConfig.redirectUri))
                 .setGrantTypeValues(listOf(GrantTypeValues.AUTHORIZATION_CODE))
-                .setAdditionalParameters(mapOf("scope" to "openid profile"))
+                .setAdditionalParameters(mapOf("scope" to ApplicationConfig.scope))
                 .build()
 
         authorizationService.performRegistrationRequest(nonTemplatizedRequest,
             handleRegistrationResponse())
-
     }
 
     private fun isRegistered(): Boolean {
@@ -122,12 +121,11 @@ class MainActivity : AppCompatActivity() {
     private fun buildAuthorizationRequest(): AuthorizationRequest {
         val clientId = ApplicationStateManager.clientId
             ?: throw IllegalApplicationStateException("No client id in configuration")
-        val redirectUri = Uri.parse("io.curity.client:/callback")
 
         return AuthorizationRequest.Builder(ApplicationStateManager.serverConfiguration, clientId,
-                "code",
-                redirectUri)
-            .setScopes("openid profile")
+                ResponseTypeValues.CODE,
+                ApplicationConfig.redirectUri)
+            .setScopes(ApplicationConfig.scope)
             .build()
     }
 
