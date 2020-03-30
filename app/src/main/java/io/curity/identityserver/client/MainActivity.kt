@@ -27,7 +27,7 @@ import androidx.appcompat.app.AppCompatActivity
 import io.curity.identityserver.client.ErrorActivity.Companion.handleError
 import io.curity.identityserver.client.error.ApplicationException
 import io.curity.identityserver.client.error.GENERIC_ERROR
-import io.curity.identityserver.client.error.IllegalClientStateException
+import io.curity.identityserver.client.error.IllegalApplicationStateException
 import io.curity.identityserver.client.error.ServerCommunicationException
 import kotlinx.android.synthetic.main.activity_main.*
 import net.openid.appauth.*
@@ -50,13 +50,16 @@ class MainActivity : AppCompatActivity() {
                 performAuthorizationRequest()
             }
 
-            AuthorizationServiceConfiguration.fetchFromIssuer(
-                Uri.parse("https://dlindau.ngrok.io/~")) { config, ex ->
-                handleConfigurationRetrievalResult(config, ex)
-                if (!isRegistered()) {
-                    registerClient()
+            if(ApplicationStateManager.serverConfiguration == null) {
+                AuthorizationServiceConfiguration.fetchFromIssuer(
+                    Uri.parse("https://dlindau.ngrok.io/~")) { config, ex ->
+                    handleConfigurationRetrievalResult(config, ex)
+                    if (!isRegistered()) {
+                        registerClient()
+                    }
                 }
             }
+
             authorizationService = AuthorizationService(this)
         } catch (exception: ApplicationException) {
             handleError(this, exception.errorTitle, exception.errorDescription ?: GENERIC_ERROR)
@@ -65,7 +68,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun registerClient() {
         val nonTemplatizedRequest =
-            RegistrationRequest.Builder(AuthStateManager.configuration, listOf(
+            RegistrationRequest.Builder(ApplicationStateManager.serverConfiguration, listOf(
                     Uri.parse("io.curity.client:/callback")))
                 .setGrantTypeValues(listOf(GrantTypeValues.AUTHORIZATION_CODE))
                 .setAdditionalParameters(mapOf("scope" to "openid profile"))
@@ -77,14 +80,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun isRegistered(): Boolean {
-        return AuthStateManager.isClientRegistered()
+        return ApplicationStateManager.isRegistered()
     }
 
     private fun handleRegistrationResponse(): (RegistrationResponse?, AuthorizationException?) -> Unit {
         return { registrationResponse, authorizationException ->
             when {
                 registrationResponse != null -> {
-                    AuthStateManager.registrationResponse = registrationResponse
+                    ApplicationStateManager.registrationResponse = registrationResponse
                 }
                 else -> throw ServerCommunicationException("Failed to register",
                     authorizationException?.errorDescription)
@@ -115,15 +118,15 @@ class MainActivity : AppCompatActivity() {
         }
         Log.i(TAG, "Discovery document retrieved")
         Log.d(TAG, config.toJsonString())
-        AuthStateManager.configuration = config
+        ApplicationStateManager.serverConfiguration = config
     }
 
     private fun buildAuthorizationRequest(): AuthorizationRequest {
-        val clientId = AuthStateManager.clientId ?: throw IllegalClientStateException(
+        val clientId = ApplicationStateManager.clientId ?: throw IllegalApplicationStateException(
             "Invalid client configuration", "No client id")
         val redirectUri = Uri.parse("io.curity.client:/callback")
 
-        return AuthorizationRequest.Builder(AuthStateManager.configuration, clientId, "code",
+        return AuthorizationRequest.Builder(ApplicationStateManager.serverConfiguration, clientId, "code",
                 redirectUri)
             .setScopes("openid profile")
             .build()

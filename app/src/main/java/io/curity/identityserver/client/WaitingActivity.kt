@@ -29,7 +29,7 @@ class WaitingActivity : AppCompatActivity() {
             response != null -> {
                 Log.i(TAG, "Got an authorization response")
                 val tokenRequest = response.createTokenExchangeRequest(
-                    mapOf("client_secret" to AuthStateManager.registrationResponse.clientSecret))
+                    mapOf("client_secret" to ApplicationStateManager.registrationResponse.clientSecret))
                 authorizationService.performTokenRequest(tokenRequest, handleTokenResponse())
             }
             else -> {

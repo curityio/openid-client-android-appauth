@@ -24,7 +24,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import io.curity.identityserver.client.ErrorActivity.Companion.handleError
 import io.curity.identityserver.client.error.ApplicationException
-import io.curity.identityserver.client.error.IllegalClientStateException
+import io.curity.identityserver.client.error.IllegalApplicationStateException
 import io.curity.identityserver.client.error.ServerCommunicationException
 import org.jose4j.jwt.consumer.InvalidJwtException
 import org.jose4j.jwt.consumer.JwtConsumerBuilder
@@ -40,7 +40,7 @@ class AuthenticatedActivity : AppCompatActivity() {
 
         try {
             val idToken = intent.getStringExtra("id_token")
-                ?: throw IllegalClientStateException("No ID token in intent")
+                ?: throw IllegalApplicationStateException("No ID token in intent")
 
             viewDataFromIdToken(idToken)
         } catch (e: ApplicationException) {
@@ -54,8 +54,8 @@ class AuthenticatedActivity : AppCompatActivity() {
             .setSkipSignatureVerification() // Not required in code flow, since the token is fetched from the server using TLS
             .setRequireSubject()
             .setAllowedClockSkewInSeconds(30)
-            .setExpectedIssuer(AuthStateManager.configuration.discoveryDoc?.issuer)
-            .setExpectedAudience(AuthStateManager.clientId)
+            .setExpectedIssuer(ApplicationStateManager.serverConfiguration.discoveryDoc?.issuer)
+            .setExpectedAudience(ApplicationStateManager.clientId)
             .build()
 
         val jwtClaims = try {

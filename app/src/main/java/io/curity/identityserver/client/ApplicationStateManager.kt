@@ -1,19 +1,19 @@
 package io.curity.identityserver.client
 
-import io.curity.identityserver.client.error.IllegalClientStateException
+import io.curity.identityserver.client.error.IllegalApplicationStateException
 import net.openid.appauth.AuthState
 import net.openid.appauth.AuthorizationServiceConfiguration
 import net.openid.appauth.RegistrationResponse
 
-object AuthStateManager {
+object ApplicationStateManager {
     private lateinit var authState: AuthState
 
     var clientId: String? = null
 
-    var configuration: AuthorizationServiceConfiguration
+    var serverConfiguration: AuthorizationServiceConfiguration
         get() {
             return authState.authorizationServiceConfiguration
-                ?: throw IllegalClientStateException("Configuration not set")
+                ?: throw IllegalApplicationStateException("Configuration not set")
         }
         set(configuration) {
             authState = AuthState(configuration)
@@ -22,14 +22,14 @@ object AuthStateManager {
     var registrationResponse: RegistrationResponse
         get() {
             return authState.lastRegistrationResponse
-                ?: throw IllegalClientStateException("Not registered")
+                ?: throw IllegalApplicationStateException("Not registered")
         }
         set(registrationResponse) {
             authState.update(registrationResponse)
             clientId = registrationResponse.clientId
         }
 
-    fun isClientRegistered(): Boolean {
+    fun isRegistered(): Boolean {
         return authState.lastRegistrationResponse != null
     }
 }
