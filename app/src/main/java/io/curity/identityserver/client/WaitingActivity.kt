@@ -33,9 +33,9 @@ class WaitingActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_waiting)
         authorizationService = AuthorizationService(this)
         handleAuthorizationResponse(intent)
-        setContentView(R.layout.activity_waiting)
     }
 
     private fun handleAuthorizationResponse(intent: Intent) {
