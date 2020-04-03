@@ -1,5 +1,5 @@
 /*
- *  Copyright 2020. Curity AB
+ *  Copyright 2020 Curity AB
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -59,3 +59,4 @@ object ApplicationStateManager {
         return authState.lastRegistrationResponse != null
     }
 }
+
