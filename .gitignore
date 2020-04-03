@@ -99,4 +99,7 @@ lint/tmp/
 .externalNativeBuild
 .cxx
 
-gradle
+gradle/
+
+app/build/
+
