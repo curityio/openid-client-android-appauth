@@ -27,3 +27,6 @@ class ServerCommunicationException(errorTitle: String, errorDescription: String?
 class IllegalApplicationStateException(errorDescription: String) :
     ApplicationException("Invalid application state", errorDescription)
 
+class InvalidIdTokenException(errorDescription: String) :
+    ApplicationException("Invalid ID Token", errorDescription)
+

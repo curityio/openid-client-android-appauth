@@ -24,7 +24,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import io.curity.identityserver.client.ErrorActivity.Companion.handleError
 import io.curity.identityserver.client.error.ApplicationException
-import io.curity.identityserver.client.error.ServerCommunicationException
+import io.curity.identityserver.client.error.InvalidIdTokenException
 import org.jose4j.jwt.consumer.InvalidJwtException
 import org.jose4j.jwt.consumer.JwtConsumerBuilder
 
@@ -58,8 +58,9 @@ class AuthenticatedActivity : AppCompatActivity() {
         val jwtClaims = try {
             jwtConsumer.processToClaims(idToken)
         } catch (e: InvalidJwtException) {
-            throw ServerCommunicationException("Invalid ID Token", e.message)
+            throw InvalidIdTokenException(e.message ?: "Failed to parse id token")
         }
+
         val title = findViewById<TextView>(R.id.hello_subject)
         title.text = getString(R.string.hello_subject, jwtClaims.subject)
         val authnDescription = findViewById<TextView>(R.id.authn_description)
