@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Curity OpenID Connect Client</string>
+    <string name="hello_subject">Hello %s!</string>
+    <string name="view_in_oauth_tools">View in oauth.tools</string>
+    <string name="authenticated_title">Hello %s!</string>
+    <string name="logout_button">Logout</string>
+    <string name="authn_description">You authenticated at %s using the method %s</string>
+    <string name="login_button">Login</string>
+    <string name="error">Error!</string>
+</resources>
