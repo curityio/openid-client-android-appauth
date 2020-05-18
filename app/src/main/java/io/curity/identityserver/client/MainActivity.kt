@@ -29,9 +29,16 @@ import io.curity.identityserver.client.error.ApplicationException
 import io.curity.identityserver.client.error.GENERIC_ERROR
 import io.curity.identityserver.client.error.IllegalApplicationStateException
 import io.curity.identityserver.client.error.ServerCommunicationException
-import kotlinx.android.synthetic.main.activity_main.*
-import net.openid.appauth.*
+import kotlinx.android.synthetic.main.activity_main.toolbar
+import net.openid.appauth.AuthorizationException
+import net.openid.appauth.AuthorizationRequest
+import net.openid.appauth.AuthorizationService
+import net.openid.appauth.AuthorizationServiceConfiguration
 import net.openid.appauth.AuthorizationServiceConfiguration.fetchFromIssuer
+import net.openid.appauth.GrantTypeValues
+import net.openid.appauth.RegistrationRequest
+import net.openid.appauth.RegistrationResponse
+import net.openid.appauth.ResponseTypeValues
 
 class MainActivity : AppCompatActivity() {
     companion object {
@@ -66,7 +73,7 @@ class MainActivity : AppCompatActivity() {
     private fun registerClient() {
         val nonTemplatizedRequest =
             RegistrationRequest.Builder(ApplicationStateManager.serverConfiguration,
-                    listOf(ApplicationConfig.redirectUri))
+                listOf(ApplicationConfig.redirectUri))
                 .setGrantTypeValues(listOf(GrantTypeValues.AUTHORIZATION_CODE))
                 .setAdditionalParameters(mapOf("scope" to ApplicationConfig.scope))
                 .build()
@@ -122,8 +129,8 @@ class MainActivity : AppCompatActivity() {
             ?: throw IllegalApplicationStateException("No client id in configuration")
 
         return AuthorizationRequest.Builder(ApplicationStateManager.serverConfiguration, clientId,
-                ResponseTypeValues.CODE,
-                ApplicationConfig.redirectUri)
+            ResponseTypeValues.CODE,
+            ApplicationConfig.redirectUri)
             .setScopes(ApplicationConfig.scope)
             .build()
     }
