@@ -52,22 +52,24 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
-        try {
-            findViewById<Button>(R.id.loginButton).setOnClickListener {
-                performAuthorizationRequest()
-            }
+        findViewById<Button>(R.id.loginButton).setOnClickListener {
+            performAuthorizationRequest()
+        }
 
-            fetchFromIssuer(ApplicationConfig.issuer) { config, ex ->
+        fetchFromIssuer(ApplicationConfig.issuer) { config, ex ->
+            try {
                 handleConfigurationRetrievalResult(config, ex)
                 if (!isRegistered()) {
                     registerClient()
                 }
-            }
+            } catch (exception: ApplicationException) {
 
-            authorizationService = AuthorizationService(this)
-        } catch (exception: ApplicationException) {
-            handleError(this, exception.errorTitle, exception.errorDescription ?: GENERIC_ERROR)
+                handleError(this, exception.errorTitle,
+                    exception.errorDescription ?: GENERIC_ERROR)
+            }
         }
+
+        authorizationService = AuthorizationService(this)
     }
 
     private fun registerClient() {
