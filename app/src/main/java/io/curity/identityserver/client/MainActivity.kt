@@ -17,123 +17,73 @@
 package io.curity.identityserver.client
 
 import android.app.PendingIntent
-import android.content.ContentValues.TAG
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import io.curity.identityserver.client.ErrorActivity.Companion.handleError
 import io.curity.identityserver.client.config.ApplicationConfig
 import io.curity.identityserver.client.error.ApplicationException
 import io.curity.identityserver.client.error.GENERIC_ERROR
-import io.curity.identityserver.client.error.IllegalApplicationStateException
-import io.curity.identityserver.client.error.ServerCommunicationException
 import kotlinx.android.synthetic.main.activity_main.toolbar
-import net.openid.appauth.AuthorizationException
-import net.openid.appauth.AuthorizationRequest
-import net.openid.appauth.AuthorizationService
-import net.openid.appauth.AuthorizationServiceConfiguration
-import net.openid.appauth.AuthorizationServiceConfiguration.fetchFromIssuer
-import net.openid.appauth.GrantTypeValues
-import net.openid.appauth.RegistrationRequest
-import net.openid.appauth.RegistrationResponse
-import net.openid.appauth.ResponseTypeValues
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainActivity : AppCompatActivity() {
     companion object {
         const val REQUEST_CODE_AUTHORIZATION_INTENT = 100
     }
 
-    private lateinit var authorizationService: AuthorizationService
+    private lateinit var appauth: AppAuthController
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
+        appauth = AppAuthController(this)
+
         findViewById<Button>(R.id.loginButton).setOnClickListener {
-            performAuthorizationRequest()
+            startAuthorizationRedirect()
         }
 
-        fetchFromIssuer(ApplicationConfig.issuer) { config, ex ->
+        fetchMetadataAndRegister()
+    }
+
+    private fun fetchMetadataAndRegister() {
+
+        CoroutineScope(Dispatchers.IO).launch {
+
+            val that = this@MainActivity
             try {
-                handleConfigurationRetrievalResult(config, ex)
-                if (!isRegistered()) {
-                    registerClient()
+                val serverConfiguration = appauth.fetchMetadata(ApplicationConfig.issuer)
+                if (!ApplicationStateManager.isRegistered()) {
+                    val registrationResponse = appauth.registerClient(serverConfiguration)
+
+                    withContext(Dispatchers.Main) {
+                        ApplicationStateManager.serverConfiguration = serverConfiguration
+                        ApplicationStateManager.registrationResponse = registrationResponse
+                    }
                 }
+
             } catch (exception: ApplicationException) {
-
-                handleError(this, exception.errorTitle,
-                    exception.errorDescription ?: GENERIC_ERROR)
-            }
-        }
-
-        authorizationService = AuthorizationService(this)
-    }
-
-    private fun registerClient() {
-        val nonTemplatizedRequest =
-            RegistrationRequest.Builder(ApplicationStateManager.serverConfiguration,
-                listOf(ApplicationConfig.redirectUri))
-                .setGrantTypeValues(listOf(GrantTypeValues.AUTHORIZATION_CODE))
-                .setAdditionalParameters(mapOf("scope" to ApplicationConfig.scope))
-                .build()
-
-        authorizationService.performRegistrationRequest(nonTemplatizedRequest,
-            handleRegistrationResponse())
-    }
-
-    private fun isRegistered(): Boolean {
-        return ApplicationStateManager.isRegistered()
-    }
-
-    private fun handleRegistrationResponse(): (RegistrationResponse?, AuthorizationException?) -> Unit {
-        return { registrationResponse, authorizationException ->
-            when {
-                registrationResponse != null -> {
-                    ApplicationStateManager.registrationResponse = registrationResponse
+                withContext(Dispatchers.Main) {
+                    handleError(that, exception.errorTitle,exception.errorDescription ?: GENERIC_ERROR)
                 }
-                else -> throw ServerCommunicationException("Failed to register",
-                    authorizationException?.errorDescription)
             }
         }
     }
 
-    private fun performAuthorizationRequest() {
-        val request = buildAuthorizationRequest()
-        authorizationService.performAuthorizationRequest(
-            request,
-            PendingIntent.getActivity(this, REQUEST_CODE_AUTHORIZATION_INTENT,
-                Intent(this, WaitingActivity::class.java), 0))
-    }
+    private fun startAuthorizationRedirect() {
 
-    private fun handleConfigurationRetrievalResult(config: AuthorizationServiceConfiguration?,
-                                                   ex: AuthorizationException?) {
-        if (ex != null || config == null) {
-            Log.e(TAG, "Failed to retrieve discovery document")
-            throw ServerCommunicationException("Failed to fetch server configuration",
-                ex?.errorDescription)
-        }
+        val intent = Intent(this, WaitingActivity::class.java)
+        val pendingIntent = PendingIntent.getActivity(this, REQUEST_CODE_AUTHORIZATION_INTENT, intent, 0)
 
-        if (config.registrationEndpoint == null) {
-            throw ServerCommunicationException("Invalid server configuration",
-                "Server discovery doc did not contain a registration endpoint")
-        }
-
-        Log.i(TAG, "Discovery document retrieved")
-        Log.d(TAG, config.toJsonString())
-        ApplicationStateManager.serverConfiguration = config
-    }
-
-    private fun buildAuthorizationRequest(): AuthorizationRequest {
-        val clientId = ApplicationStateManager.clientId
-            ?: throw IllegalApplicationStateException("No client id in configuration")
-
-        return AuthorizationRequest.Builder(ApplicationStateManager.serverConfiguration, clientId,
-            ResponseTypeValues.CODE,
-            ApplicationConfig.redirectUri)
-            .setScopes(ApplicationConfig.scope)
-            .build()
+        appauth.startAuthorizationRedirect(
+            ApplicationStateManager.serverConfiguration,
+            ApplicationStateManager.registrationResponse,
+            pendingIntent)
     }
 }

@@ -23,13 +23,11 @@ import net.openid.appauth.RegistrationResponse
 import net.openid.appauth.TokenResponse
 
 object ApplicationStateManager {
-    private lateinit var authState: AuthState
-
-    var clientId: String? = null
+    private var authState: AuthState? = null
 
     var serverConfiguration: AuthorizationServiceConfiguration
         get() {
-            return authState.authorizationServiceConfiguration
+            return authState?.authorizationServiceConfiguration
                 ?: throw IllegalApplicationStateException("Configuration not set")
         }
         set(configuration) {
@@ -38,25 +36,24 @@ object ApplicationStateManager {
 
     var registrationResponse: RegistrationResponse
         get() {
-            return authState.lastRegistrationResponse
+            return authState?.lastRegistrationResponse
                 ?: throw IllegalApplicationStateException("Not registered")
         }
         set(registrationResponse) {
-            authState.update(registrationResponse)
-            clientId = registrationResponse.clientId
+            authState?.update(registrationResponse)
         }
 
     var tokenResponse: TokenResponse
         get() {
-            return authState.lastTokenResponse
+            return authState?.lastTokenResponse
                 ?: throw IllegalApplicationStateException("No recent tokens")
         }
         set(tokenResponse) {
-            authState.update(tokenResponse, null)
+            authState?.update(tokenResponse, null)
         }
 
     fun isRegistered(): Boolean {
-        return authState.lastRegistrationResponse != null
+        return authState?.lastRegistrationResponse != null
     }
 }
 

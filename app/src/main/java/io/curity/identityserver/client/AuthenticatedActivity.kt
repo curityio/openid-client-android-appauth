@@ -52,7 +52,7 @@ class AuthenticatedActivity : AppCompatActivity() {
             .setRequireSubject()
             .setAllowedClockSkewInSeconds(30)
             .setExpectedIssuer(ApplicationStateManager.serverConfiguration.discoveryDoc?.issuer)
-            .setExpectedAudience(ApplicationStateManager.clientId)
+            .setExpectedAudience(ApplicationStateManager.registrationResponse.clientId)
             .build()
 
         val jwtClaims = try {
@@ -67,7 +67,6 @@ class AuthenticatedActivity : AppCompatActivity() {
         authnDescription.text = getString(R.string.authn_description,
             jwtClaims.getNumericDateClaimValue("auth_time"), jwtClaims.getClaimValueAsString("acr"))
     }
-
 
     private fun logout(): (View) -> Unit = {
         val logoutIntent = Intent(applicationContext, MainActivity::class.java)

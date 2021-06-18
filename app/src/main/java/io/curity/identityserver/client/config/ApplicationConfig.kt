@@ -21,5 +21,5 @@ import android.net.Uri
 object ApplicationConfig {
     val redirectUri: Uri = Uri.parse("io.curity.client:/callback")
     const val scope = "openid profile"
-    val issuer: Uri = Uri.parse("https://login-garcher.eu.ngrok.io/oauth/v2/oauth-anonymous")
+    val issuer: Uri = Uri.parse("https://ef5540f40573.eu.ngrok.io/oauth/v2/oauth-anonymous")
 }
