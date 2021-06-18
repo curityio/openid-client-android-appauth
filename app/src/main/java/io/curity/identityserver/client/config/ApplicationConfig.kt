@@ -1,5 +1,5 @@
 /*
- *  Copyright 2020 Curity AB
+ *  Copyright 2021 Curity AB
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -21,5 +21,5 @@ import android.net.Uri
 object ApplicationConfig {
     val redirectUri: Uri = Uri.parse("io.curity.client:/callback")
     const val scope = "openid profile"
-    val issuer: Uri = Uri.parse("https://dlindau.ngrok.io/~")
+    val issuer: Uri = Uri.parse("https://login-garcher.eu.ngrok.io/oauth/v2/oauth-anonymous")
 }

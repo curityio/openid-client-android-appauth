@@ -1,5 +1,5 @@
 /*
- *  Copyright 2020 Curity AB
+ *  Copyright 2021 Curity AB
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -97,7 +97,6 @@ class MainActivity : AppCompatActivity() {
                 else -> throw ServerCommunicationException("Failed to register",
                     authorizationException?.errorDescription)
             }
-
         }
     }
 
@@ -121,6 +120,7 @@ class MainActivity : AppCompatActivity() {
             throw ServerCommunicationException("Invalid server configuration",
                 "Server discovery doc did not contain a registration endpoint")
         }
+
         Log.i(TAG, "Discovery document retrieved")
         Log.d(TAG, config.toJsonString())
         ApplicationStateManager.serverConfiguration = config
@@ -136,5 +136,4 @@ class MainActivity : AppCompatActivity() {
             .setScopes(ApplicationConfig.scope)
             .build()
     }
-
 }
