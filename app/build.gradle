@@ -21,7 +21,7 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
 android {
-    compileSdkVersion 29
+    compileSdkVersion 30
     defaultConfig {
         applicationId "io.curity.identityserver.client"
         minSdkVersion 19
@@ -48,6 +48,6 @@ dependencies {
     implementation 'androidx.core:core-ktx:1.0.2'
     implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
     implementation 'com.google.android.material:material:1.0.0'
-    implementation 'net.openid:appauth:0.7.1'
+    implementation 'net.openid:appauth:0.9.0'
     implementation 'org.bitbucket.b_c:jose4j:0.7.0'
 }
