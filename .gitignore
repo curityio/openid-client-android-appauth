@@ -108,7 +108,5 @@ lint/tmp/
 .externalNativeBuild
 .cxx
 
-gradle/
-
 app/build/
 

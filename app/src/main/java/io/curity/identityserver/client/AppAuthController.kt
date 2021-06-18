@@ -29,8 +29,10 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
+
 /*
  * A code layer to manage AppAuth integration in one place and reduce code in the rest of the app
+ * https://nicedoc.io/openid/AppAuth-Android
  */
 class AppAuthController(private val context: Context) {
 
@@ -132,6 +134,11 @@ class AppAuthController(private val context: Context) {
         ex: AuthorizationException?,
         registrationResponse: RegistrationResponse): TokenResponse {
 
+        /* TODO: handle login cancelled
+            if (ex.type == AuthorizationException.TYPE_GENERAL_ERROR &&
+                ex.code.equals(AuthorizationException.GeneralErrors.USER_CANCELED_AUTH_FLOW.code)
+        )*/
+
         if (response == null) {
             throw ServerCommunicationException("Authorization request failed", ex?.errorDescription)
         }
@@ -156,5 +163,57 @@ class AppAuthController(private val context: Context) {
                 }
             }
         }
+    }
+
+    /*
+     * Try to refresh an access token
+     */
+    suspend fun refreshAccessToken(
+        refreshToken: String,
+        serverConfiguration: AuthorizationServiceConfiguration,
+        registrationResponse: RegistrationResponse): TokenResponse {
+
+        val tokenRequest = TokenRequest.Builder(serverConfiguration, registrationResponse.clientId)
+            .setGrantType(GrantTypeValues.REFRESH_TOKEN)
+            .setRefreshToken(refreshToken)
+            .build()
+
+        return suspendCoroutine { continuation ->
+
+            authorizationService.performTokenRequest(tokenRequest) { tokenResponse, ex ->
+
+                when {
+                    /* TODO: handle session expired
+                        if (ex.type == AuthorizationException.TYPE_OAUTH_TOKEN_ERROR &&
+                            ex.code.equals(AuthorizationException.TokenRequestErrors.INVALID_GRANT.code)
+                    )*/
+
+                    tokenResponse != null -> {
+                        Log.i(ContentValues.TAG, "Got a token response: ${tokenResponse.idToken}")
+                        continuation.resume(tokenResponse)
+                    }
+                    else -> {
+                        val error = ServerCommunicationException("Token request failed", ex?.errorDescription)
+                        continuation.resumeWithException(error)
+                    }
+                }
+            }
+        }
+    }
+
+    /*
+     * Do an OpenID Connect end session redirect and remove the SSO cookie
+     */
+    fun startEndSessionRedirect(serverConfiguration: AuthorizationServiceConfiguration,
+                                idToken: String,
+                                postLogoutRedirectUri: Uri,
+                                pendingIntent: PendingIntent) {
+
+        val request = EndSessionRequest.Builder(serverConfiguration)
+            .setIdTokenHint(idToken)
+            .setPostLogoutRedirectUri(postLogoutRedirectUri)
+            .build()
+
+        authorizationService.performEndSessionRequest(request, pendingIntent)
     }
 }
