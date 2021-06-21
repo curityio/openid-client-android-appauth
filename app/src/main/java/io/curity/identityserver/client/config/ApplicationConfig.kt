@@ -19,7 +19,8 @@ package io.curity.identityserver.client.config
 import android.net.Uri
 
 object ApplicationConfig {
-    val redirectUri: Uri = Uri.parse("io.curity.client:/callback")
+    val issuer: Uri = Uri.parse("https://350236ae137f.eu.ngrok.io/oauth/v2/oauth-anonymous")
     const val scope = "openid profile"
-    val issuer: Uri = Uri.parse("https://ef5540f40573.eu.ngrok.io/oauth/v2/oauth-anonymous")
+    val redirectUri = Uri.parse("io.curity.client:/callback")
+    val postLogoutRedirectUri = Uri.parse("io.curity.client:/logoutcallback")
 }

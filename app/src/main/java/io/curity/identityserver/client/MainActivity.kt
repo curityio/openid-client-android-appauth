@@ -16,74 +16,68 @@
 
 package io.curity.identityserver.client
 
-import android.app.PendingIntent
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Button
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import io.curity.identityserver.client.ErrorActivity.Companion.handleError
-import io.curity.identityserver.client.config.ApplicationConfig
+import androidx.databinding.DataBindingUtil
+import androidx.navigation.fragment.NavHostFragment
+import io.curity.identityserver.client.databinding.ActivityMainBinding
 import io.curity.identityserver.client.error.ApplicationException
-import io.curity.identityserver.client.error.GENERIC_ERROR
 import kotlinx.android.synthetic.main.activity_main.toolbar
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class MainActivity : AppCompatActivity() {
-    companion object {
-        const val REQUEST_CODE_AUTHORIZATION_INTENT = 100
-    }
 
-    private lateinit var appauth: AppAuthController
+    private lateinit var binding: ActivityMainBinding
+    private val REQUEST_CODE_AUTHORIZATION_INTENT = 100
+    private val REQUEST_CODE_END_SESSION_INTENT   = 101
 
     override fun onCreate(savedInstanceState: Bundle?) {
+
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+
+        val model: MainActivityViewModel by viewModels()
+        model.initialize(this)
+
+        this.binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         setSupportActionBar(toolbar)
 
-        appauth = AppAuthController(this)
-
-        findViewById<Button>(R.id.loginButton).setOnClickListener {
-            startAuthorizationRedirect()
-        }
-
-        fetchMetadataAndRegister()
+        this.binding.model = model
+        this.binding.model!!.registerIfRequired()
     }
 
-    private fun fetchMetadataAndRegister() {
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
 
-        CoroutineScope(Dispatchers.IO).launch {
+        super.onActivityResult(requestCode, resultCode, data)
 
-            val that = this@MainActivity
-            try {
-                val serverConfiguration = appauth.fetchMetadata(ApplicationConfig.issuer)
-                if (!ApplicationStateManager.isRegistered()) {
-                    val registrationResponse = appauth.registerClient(serverConfiguration)
-
-                    withContext(Dispatchers.Main) {
-                        ApplicationStateManager.serverConfiguration = serverConfiguration
-                        ApplicationStateManager.registrationResponse = registrationResponse
-                    }
-                }
-
-            } catch (exception: ApplicationException) {
-                withContext(Dispatchers.Main) {
-                    handleError(that, exception.errorTitle,exception.errorDescription ?: GENERIC_ERROR)
-                }
-            }
+        if (requestCode == REQUEST_CODE_AUTHORIZATION_INTENT && data != null) {
+            this.binding.model!!.endLogin(data)
+        }
+        else if (requestCode == REQUEST_CODE_END_SESSION_INTENT && data != null) {
+            this.binding.model!!.endLogout(data)
         }
     }
 
-    private fun startAuthorizationRedirect() {
+    fun startLoginRedirect(intent: Intent) {
+        this.startActivityForResult(intent, REQUEST_CODE_AUTHORIZATION_INTENT)
+    }
 
-        val intent = Intent(this, WaitingActivity::class.java)
-        val pendingIntent = PendingIntent.getActivity(this, REQUEST_CODE_AUTHORIZATION_INTENT, intent, 0)
+    fun onLoginSuccess() {
+        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+        navHostFragment.navController.navigate(R.id.fragment_authenticated)
+    }
 
-        appauth.startAuthorizationRedirect(
-            ApplicationStateManager.serverConfiguration,
-            ApplicationStateManager.registrationResponse,
-            pendingIntent)
+    fun startLogoutRedirect(intent: Intent) {
+        this.startActivityForResult(intent, REQUEST_CODE_END_SESSION_INTENT)
+    }
+
+    fun onLogoutSuccess() {
+        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+        navHostFragment.navController.navigate(R.id.fragment_unauthenticated)
+    }
+
+    fun handleError(exception: ApplicationException) {
+        val errorFragment = this.supportFragmentManager.findFragmentById(R.id.fragment_error) as ErrorFragment
+        errorFragment.reportError(exception)
     }
 }

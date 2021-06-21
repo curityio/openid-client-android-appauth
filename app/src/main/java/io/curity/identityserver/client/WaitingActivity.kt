@@ -27,16 +27,16 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.openid.appauth.AuthorizationException
 import net.openid.appauth.AuthorizationResponse
-
+/*
 class WaitingActivity : AppCompatActivity() {
 
-    private lateinit var appauth: AppAuthController
+    private lateinit var appauth: AppAuthMessages
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_waiting)
 
-        appauth = AppAuthController(this)
+        appauth = AppAuthMessages(this)
         handleAuthorizationResponse(intent)
     }
 
@@ -65,3 +65,4 @@ class WaitingActivity : AppCompatActivity() {
         }
     }
 }
+*/

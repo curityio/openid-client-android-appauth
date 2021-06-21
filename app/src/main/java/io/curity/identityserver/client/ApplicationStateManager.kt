@@ -43,7 +43,7 @@ object ApplicationStateManager {
             authState?.update(registrationResponse)
         }
 
-    var tokenResponse: TokenResponse
+    var tokenResponse: TokenResponse?
         get() {
             return authState?.lastTokenResponse
                 ?: throw IllegalApplicationStateException("No recent tokens")

@@ -16,9 +16,9 @@
 
 package io.curity.identityserver.client
 
-import android.app.PendingIntent
 import android.content.ContentValues
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.util.Log
 import io.curity.identityserver.client.config.ApplicationConfig
@@ -29,12 +29,10 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
-
 /*
- * A code layer to manage AppAuth integration in one place and reduce code in the rest of the app
- * https://nicedoc.io/openid/AppAuth-Android
+ * Manage AppAuth integration in one place and reduce code in the rest of the app
  */
-class AppAuthController(private val context: Context) {
+class AppAuthHandler(private val context: Context) {
 
     private val authorizationService: AuthorizationService = AuthorizationService(context)
 
@@ -79,16 +77,20 @@ class AppAuthController(private val context: Context) {
      */
     suspend fun registerClient(serverConfiguration: AuthorizationServiceConfiguration): RegistrationResponse {
 
-        val nonTemplatizedRequest =
-            RegistrationRequest.Builder(
-                serverConfiguration,
-                listOf(ApplicationConfig.redirectUri)
-            )
-                .setGrantTypeValues(listOf(GrantTypeValues.AUTHORIZATION_CODE))
-                .setAdditionalParameters(mapOf("scope" to ApplicationConfig.scope))
-                .build()
-
         return suspendCoroutine { continuation ->
+
+            val extraParams = mutableMapOf<String, Array<String>>()
+            val postLogoutRedirectUris = arrayOf(ApplicationConfig.postLogoutRedirectUri.toString())
+            extraParams.put("post_logout_redirect_uri", postLogoutRedirectUris)
+
+            val nonTemplatizedRequest =
+                RegistrationRequest.Builder(
+                    serverConfiguration,
+                    listOf(ApplicationConfig.redirectUri)
+                )
+                    .setGrantTypeValues(listOf(GrantTypeValues.AUTHORIZATION_CODE))
+                    .setAdditionalParameters(mapOf("scope" to ApplicationConfig.scope))
+                    .build()
 
             authorizationService.performRegistrationRequest(nonTemplatizedRequest) { registrationResponse, authorizationException ->
                 when {
@@ -107,10 +109,9 @@ class AppAuthController(private val context: Context) {
     /*
      * Trigger a redirect with standard parameters
      */
-    fun startAuthorizationRedirect(
+    fun getAuthorizationRedirectIntent(
         serverConfiguration: AuthorizationServiceConfiguration,
-        registrationResponse: RegistrationResponse,
-        pendingIntent: PendingIntent) {
+        registrationResponse: RegistrationResponse): Intent {
 
         // Use acr_values to select a particular authentication method at runtime
         val extraParams = mutableMapOf<String, String>()
@@ -123,7 +124,7 @@ class AppAuthController(private val context: Context) {
             .setAdditionalParameters(extraParams)
             .build()
 
-        authorizationService.performAuthorizationRequest(request, pendingIntent)
+        return authorizationService.getAuthorizationRequestIntent(request)
     }
 
     /*
@@ -132,12 +133,15 @@ class AppAuthController(private val context: Context) {
     suspend fun handleAuthorizationResponse(
         response: AuthorizationResponse?,
         ex: AuthorizationException?,
-        registrationResponse: RegistrationResponse): TokenResponse {
+        registrationResponse: RegistrationResponse): TokenResponse? {
 
-        /* TODO: handle login cancelled
-            if (ex.type == AuthorizationException.TYPE_GENERAL_ERROR &&
-                ex.code.equals(AuthorizationException.GeneralErrors.USER_CANCELED_AUTH_FLOW.code)
-        )*/
+        authorizationService.customTabManager?.dispose()
+
+        if (ex != null &&
+            ex.type == AuthorizationException.TYPE_GENERAL_ERROR &&
+            ex.code.equals(AuthorizationException.GeneralErrors.USER_CANCELED_AUTH_FLOW.code)) {
+            return null
+        }
 
         if (response == null) {
             throw ServerCommunicationException("Authorization request failed", ex?.errorDescription)
@@ -153,7 +157,7 @@ class AppAuthController(private val context: Context) {
 
                 when {
                     tokenResponse != null -> {
-                        Log.i(ContentValues.TAG, "Got a token response: ${tokenResponse.idToken}")
+                        Log.i(ContentValues.TAG, "Got a token response: ${tokenResponse.accessToken}")
                         continuation.resume(tokenResponse)
                     }
                     else -> {
@@ -166,16 +170,18 @@ class AppAuthController(private val context: Context) {
     }
 
     /*
-     * Try to refresh an access token
+     * Try to refresh an access token and handle both end of session and failure conditions
      */
     suspend fun refreshAccessToken(
         refreshToken: String,
         serverConfiguration: AuthorizationServiceConfiguration,
-        registrationResponse: RegistrationResponse): TokenResponse {
+        registrationResponse: RegistrationResponse): TokenResponse? {
 
+        val extraParams = mapOf("client_secret" to registrationResponse.clientSecret)
         val tokenRequest = TokenRequest.Builder(serverConfiguration, registrationResponse.clientId)
             .setGrantType(GrantTypeValues.REFRESH_TOKEN)
             .setRefreshToken(refreshToken)
+            .setAdditionalParameters(extraParams)
             .build()
 
         return suspendCoroutine { continuation ->
@@ -183,16 +189,19 @@ class AppAuthController(private val context: Context) {
             authorizationService.performTokenRequest(tokenRequest) { tokenResponse, ex ->
 
                 when {
-                    /* TODO: handle session expired
-                        if (ex.type == AuthorizationException.TYPE_OAUTH_TOKEN_ERROR &&
-                            ex.code.equals(AuthorizationException.TokenRequestErrors.INVALID_GRANT.code)
-                    )*/
-
                     tokenResponse != null -> {
-                        Log.i(ContentValues.TAG, "Got a token response: ${tokenResponse.idToken}")
+                        Log.i(ContentValues.TAG, "Got a token response: ${tokenResponse.accessToken}")
                         continuation.resume(tokenResponse)
                     }
                     else -> {
+
+                        if (ex != null &&
+                            ex.type == AuthorizationException.TYPE_OAUTH_TOKEN_ERROR &&
+                            ex.code.equals(AuthorizationException.TokenRequestErrors.INVALID_GRANT.code)) {
+                            continuation.resume(null)
+                        }
+
+                        println(ex?.message)
                         val error = ServerCommunicationException("Token request failed", ex?.errorDescription)
                         continuation.resumeWithException(error)
                     }
@@ -204,16 +213,25 @@ class AppAuthController(private val context: Context) {
     /*
      * Do an OpenID Connect end session redirect and remove the SSO cookie
      */
-    fun startEndSessionRedirect(serverConfiguration: AuthorizationServiceConfiguration,
-                                idToken: String,
-                                postLogoutRedirectUri: Uri,
-                                pendingIntent: PendingIntent) {
+    fun getEndSessionRedirectIntent(serverConfiguration: AuthorizationServiceConfiguration,
+                                    registrationResponse: RegistrationResponse,
+                                    idToken: String?,
+                                    postLogoutRedirectUri: Uri): Intent {
 
+        val extraParams = mapOf("client_id" to registrationResponse.clientId)
         val request = EndSessionRequest.Builder(serverConfiguration)
             .setIdTokenHint(idToken)
             .setPostLogoutRedirectUri(postLogoutRedirectUri)
+            .setAdditionalParameters(extraParams)
             .build()
 
-        authorizationService.performEndSessionRequest(request, pendingIntent)
+        return authorizationService.getEndSessionRequestIntent(request)
+    }
+
+    /*
+     * Clean up after an end session response
+     */
+    fun handleEndSessionResponse() {
+        authorizationService.customTabManager?.dispose()
     }
 }
