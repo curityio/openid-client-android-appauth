@@ -79,9 +79,10 @@ class AppAuthHandler(private val context: Context) {
 
         return suspendCoroutine { continuation ->
 
-            val extraParams = mutableMapOf<String, Array<String>>()
-            val postLogoutRedirectUris = arrayOf(ApplicationConfig.postLogoutRedirectUri.toString())
-            extraParams.put("post_logout_redirect_uri", postLogoutRedirectUris)
+            val extraParams = mutableMapOf<String, String>()
+            extraParams.put("scope", ApplicationConfig.scope)
+            extraParams.put("requires_consent", "false")
+            extraParams.put("post_logout_redirect_uris", ApplicationConfig.postLogoutRedirectUri.toString())
 
             val nonTemplatizedRequest =
                 RegistrationRequest.Builder(
@@ -89,7 +90,7 @@ class AppAuthHandler(private val context: Context) {
                     listOf(ApplicationConfig.redirectUri)
                 )
                     .setGrantTypeValues(listOf(GrantTypeValues.AUTHORIZATION_CODE))
-                    .setAdditionalParameters(mapOf("scope" to ApplicationConfig.scope))
+                    .setAdditionalParameters(extraParams)
                     .build()
 
             authorizationService.performRegistrationRequest(nonTemplatizedRequest) { registrationResponse, authorizationException ->

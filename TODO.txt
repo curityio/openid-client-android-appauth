@@ -1,27 +1,22 @@
-SMALL THINGS
-------------
-Tidy up UI enough and deliver first draft of article
-Display details about valid tokens and something visual when access token refreshed
-Add headers for Curity 2021 to new source files
-Fix AppAuth.* imports and turn off this compiler option
-
-IOS HAAPI WRITE UP
-------------------
-Complete this to get a better idea of final state
-
-OPEN ISSUE
----------
-Logout not working because (I think) I cannot register a post logout redirect URI
-
-RELIABILITY
-------------
-Error reporting to complete for authenticated view
+CODE STRUCTURE
+--------------
 Use Newer form of onActivityResult
+Can I move to fragments and get rid of messy AppAuthHandler class?
+Reconsider coroutines
+
+ERROR HANDLING
+--------------
+Error responses to test displayed OK for each operation
+Start with adding an invalid email scope
+Say something about errors in the write up
+
+FIXES
+-----
+Logout not working
 Clearing of tokens on session expiry and logout
 Does handling of refresh token response use latest rotated tokens for id token and refresh token?
 
-POLISHING
----------
-UI look and feel in line with HAAPI
-Can I make locations of OAuth responsibilities cleaner?
-Now that OAuth code exists in AuthenticatedFragment I may need to rethink a thing or two
+UI
+--
+Refinements a little in line with iOS HAAPI sample and better use of colours
+Display details about valid tokens and something visual when access token refreshed
