@@ -21,8 +21,10 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.util.Log
-import io.curity.identityserver.client.config.ApplicationConfig
-import io.curity.identityserver.client.error.ServerCommunicationException
+import io.curity.identityserver.client.configuration.ApplicationConfig
+import io.curity.identityserver.client.errors.ApplicationException
+import io.curity.identityserver.client.errors.GENERIC_ERROR
+import io.curity.identityserver.client.errors.ServerCommunicationException
 import net.openid.appauth.*
 import net.openid.appauth.AuthorizationServiceConfiguration.fetchFromIssuer
 import kotlin.coroutines.resume
@@ -30,9 +32,9 @@ import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
 /*
- * Manage AppAuth integration in one place and reduce code in the rest of the app
+ * Manage AppAuth integration in one class in order to reduce code in the rest of the app
  */
-class AppAuthHandler(private val context: Context) {
+class AppAuthHandler(val context: Context) {
 
     private val authorizationService: AuthorizationService = AuthorizationService(context)
 
@@ -48,23 +50,19 @@ class AppAuthHandler(private val context: Context) {
                 when {
                     config != null -> {
                         if (config.registrationEndpoint == null) {
-                            val error = ServerCommunicationException(
-                                "Invalid server configuration",
+                            val error = ApplicationException(
+                                "fetchFromIssuer",
                                 "Server discovery doc did not contain a registration endpoint"
                             )
                             continuation.resumeWithException(error)
                         }
 
-                        Log.i(ContentValues.TAG, "Discovery document retrieved")
+                        Log.i(ContentValues.TAG, "Discovery document retrieved successfully")
                         Log.d(ContentValues.TAG, config.toJsonString())
                         continuation.resume(config)
                     }
                     else -> {
-                        Log.e(ContentValues.TAG, "Failed to retrieve discovery document")
-                        val error = ServerCommunicationException(
-                            "Failed to fetch server configuration",
-                            ex?.errorDescription
-                        )
+                        val error = createAuthorizationError("fetchFromIssuer", ex)
                         continuation.resumeWithException(error)
                     }
                 }
@@ -93,13 +91,15 @@ class AppAuthHandler(private val context: Context) {
                     .setAdditionalParameters(extraParams)
                     .build()
 
-            authorizationService.performRegistrationRequest(nonTemplatizedRequest) { registrationResponse, authorizationException ->
+            authorizationService.performRegistrationRequest(nonTemplatizedRequest) { registrationResponse, ex ->
                 when {
                     registrationResponse != null -> {
+                        Log.i(ContentValues.TAG, "Registration data retrieved successfully")
+                        Log.d(ContentValues.TAG, registrationResponse.jsonSerializeString())
                         continuation.resume(registrationResponse)
                     }
                     else -> {
-                        val error = ServerCommunicationException("Failed to register", authorizationException?.errorDescription)
+                        val error = createAuthorizationError("performRegistrationRequest", ex)
                         continuation.resumeWithException(error)
                     }
                 }
@@ -109,6 +109,7 @@ class AppAuthHandler(private val context: Context) {
 
     /*
      * Trigger a redirect with standard parameters
+     * acr_values can be sent as an extra parameter, to control authentication methods
      */
     fun getAuthorizationRedirectIntent(
         serverConfiguration: AuthorizationServiceConfiguration,
@@ -129,40 +130,50 @@ class AppAuthHandler(private val context: Context) {
     }
 
     /*
-     * Handle the response details and then redeem the code for tokens
+     * Handle the authorization response, including the user closing the Chrome Custom Tab
      */
-    suspend fun handleAuthorizationResponse(
+    fun handleAuthorizationResponse(
         response: AuthorizationResponse?,
-        ex: AuthorizationException?,
-        registrationResponse: RegistrationResponse): TokenResponse? {
-
-        authorizationService.customTabManager?.dispose()
+        ex: AuthorizationException?): AuthorizationResponse? {
 
         if (ex != null &&
             ex.type == AuthorizationException.TYPE_GENERAL_ERROR &&
-            ex.code.equals(AuthorizationException.GeneralErrors.USER_CANCELED_AUTH_FLOW.code)) {
+            ex.code.equals(AuthorizationException.GeneralErrors.USER_CANCELED_AUTH_FLOW.code)
+        ) {
             return null
         }
 
         if (response == null) {
-            throw ServerCommunicationException("Authorization request failed", ex?.errorDescription)
+            throw createAuthorizationError("Authorization request failed", ex)
         }
 
-        Log.i(ContentValues.TAG, "Got an authorization response")
-        val extraParams = mapOf("client_secret" to registrationResponse.clientSecret)
-        val tokenRequest = response.createTokenExchangeRequest(extraParams)
+        Log.i(ContentValues.TAG, "Authorization response received successfully")
+        Log.d(ContentValues.TAG, response.jsonSerializeString())
+        return response
+    }
+
+    /*
+     * Handle the authorization code grant request to get tokens
+     */
+    suspend fun redeemCodeForTokens(
+            response: AuthorizationResponse,
+            registrationResponse: RegistrationResponse): TokenResponse? {
 
         return suspendCoroutine { continuation ->
+
+            val extraParams = mapOf("client_secret" to registrationResponse.clientSecret)
+            val tokenRequest = response.createTokenExchangeRequest(extraParams)
 
             authorizationService.performTokenRequest(tokenRequest) { tokenResponse, ex ->
 
                 when {
                     tokenResponse != null -> {
-                        Log.i(ContentValues.TAG, "Got a token response: ${tokenResponse.accessToken}")
+                        Log.i(ContentValues.TAG, "Authorization code grant response received successfully")
+                        Log.d(ContentValues.TAG, tokenResponse.jsonSerializeString())
                         continuation.resume(tokenResponse)
                     }
                     else -> {
-                        val error = ServerCommunicationException("Token request failed", ex?.errorDescription)
+                        val error = createAuthorizationError("Authorization code grant request failed", ex)
                         continuation.resumeWithException(error)
                     }
                 }
@@ -171,27 +182,28 @@ class AppAuthHandler(private val context: Context) {
     }
 
     /*
-     * Try to refresh an access token and handle both end of session and failure conditions
+     * Try to refresh an access token and return null when the refresh token expires
      */
     suspend fun refreshAccessToken(
         refreshToken: String,
         serverConfiguration: AuthorizationServiceConfiguration,
         registrationResponse: RegistrationResponse): TokenResponse? {
 
-        val extraParams = mapOf("client_secret" to registrationResponse.clientSecret)
-        val tokenRequest = TokenRequest.Builder(serverConfiguration, registrationResponse.clientId)
-            .setGrantType(GrantTypeValues.REFRESH_TOKEN)
-            .setRefreshToken(refreshToken)
-            .setAdditionalParameters(extraParams)
-            .build()
-
         return suspendCoroutine { continuation ->
+
+            val extraParams = mapOf("client_secret" to registrationResponse.clientSecret)
+            val tokenRequest = TokenRequest.Builder(serverConfiguration, registrationResponse.clientId)
+                .setGrantType(GrantTypeValues.REFRESH_TOKEN)
+                .setRefreshToken(refreshToken)
+                .setAdditionalParameters(extraParams)
+                .build()
 
             authorizationService.performTokenRequest(tokenRequest) { tokenResponse, ex ->
 
                 when {
                     tokenResponse != null -> {
-                        Log.i(ContentValues.TAG, "Got a token response: ${tokenResponse.accessToken}")
+                        Log.i(ContentValues.TAG, "Refresh token grant response received successfully")
+                        Log.d(ContentValues.TAG, tokenResponse.jsonSerializeString())
                         continuation.resume(tokenResponse)
                     }
                     else -> {
@@ -202,8 +214,7 @@ class AppAuthHandler(private val context: Context) {
                             continuation.resume(null)
                         }
 
-                        println(ex?.message)
-                        val error = ServerCommunicationException("Token request failed", ex?.errorDescription)
+                        val error = createAuthorizationError("refreshAccessToken failed", ex)
                         continuation.resumeWithException(error)
                     }
                 }
@@ -230,9 +241,33 @@ class AppAuthHandler(private val context: Context) {
     }
 
     /*
-     * Clean up after an end session response
+     * Finalize after receiving an end session response
      */
-    fun handleEndSessionResponse() {
-        authorizationService.customTabManager?.dispose()
+    fun handleEndSessionResponse(
+        response: AuthorizationResponse?,
+        ex: AuthorizationException?) {
+
+        when {
+            ex != null -> {
+                throw createAuthorizationError("End session request failed", ex)
+            }
+        }
+    }
+
+    /*
+     * Process AppAuth error / error_description fields
+     */
+    private fun createAuthorizationError(title: String, ex: AuthorizationException?): ServerCommunicationException {
+
+        var description = ""
+
+        if (ex?.error != null) {
+            description = "Code: ${ex.error}, Description: ${ex.errorDescription ?: GENERIC_ERROR}}"
+        } else {
+            description = GENERIC_ERROR
+        }
+
+        Log.e(ContentValues.TAG, "$title : $description")
+        return ServerCommunicationException(title, description)
     }
 }

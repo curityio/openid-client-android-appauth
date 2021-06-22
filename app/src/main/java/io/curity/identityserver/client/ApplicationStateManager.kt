@@ -16,13 +16,18 @@
 
 package io.curity.identityserver.client
 
-import io.curity.identityserver.client.error.IllegalApplicationStateException
+import io.curity.identityserver.client.errors.IllegalApplicationStateException
 import net.openid.appauth.AuthState
 import net.openid.appauth.AuthorizationServiceConfiguration
 import net.openid.appauth.RegistrationResponse
 import net.openid.appauth.TokenResponse
 
+/*
+ * Wraps the AuthState class from the AppAuth library
+ * Some or all of the auth state can be persisted to a secure location such as Encrypted Shared Preferences
+ */
 object ApplicationStateManager {
+
     private var authState: AuthState? = null
 
     var serverConfiguration: AuthorizationServiceConfiguration
@@ -46,14 +51,22 @@ object ApplicationStateManager {
     var tokenResponse: TokenResponse?
         get() {
             return authState?.lastTokenResponse
-                ?: throw IllegalApplicationStateException("No recent tokens")
         }
         set(tokenResponse) {
-            authState?.update(tokenResponse, null)
+
+            if (tokenResponse != null) {
+                authState?.update(tokenResponse, null)
+            } else {
+
+                val oldAuthState = authState
+                if (oldAuthState != null) {
+                    authState = AuthState(oldAuthState.authorizationServiceConfiguration!!)
+                    authState!!.update(oldAuthState.lastRegistrationResponse)
+                }
+            }
         }
 
     fun isRegistered(): Boolean {
         return authState?.lastRegistrationResponse != null
     }
 }
-

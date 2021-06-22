@@ -1,22 +1,38 @@
-CODE STRUCTURE
---------------
-Use Newer form of onActivityResult
-Can I move to fragments and get rid of messy AppAuthHandler class?
-Reconsider coroutines
+CODE STRUCTURE 1
+----------------
+Get refresh token errors and id token parsing reporting properly
+Do this using mainviewmodelevents in authenticatedfragmentviewmodel
 
-ERROR HANDLING
---------------
-Error responses to test displayed OK for each operation
-Start with adding an invalid email scope
-Say something about errors in the write up
+CODE STRUCTURE 2
+----------------
+Move code from mainactivity to unauthenticated and authenticated fragments
+
+ERRORS
+------
+Briefly dicuss OAuth error responses in the write up
 
 FIXES
 -----
-Logout not working
-Clearing of tokens on session expiry and logout
-Does handling of refresh token response use latest rotated tokens for id token and refresh token?
+Logs output registration response instead of message???
+Logout only works sometimes
 
-UI
---
+UI / POLISH
+-----------
 Refinements a little in line with iOS HAAPI sample and better use of colours
-Display details about valid tokens and something visual when access token refreshed
+Display details about valid access tokens as well as id tokens
+Clean up dependencies
+
+SECURITY
+--------
+Discuss with Jacob whether to use Authenticated DCR
+Separate implicit flow client to get a DCR token will create inconsistent code
+HAAPI and old device versions mentioned by Daniel
+
+ARTICLES
+--------
+Mention most mainstream coding style is single activity
+Mention multiple ways to code an Android app and solution can be adapted - eg official samples transfer between activities
+Mention how a prerequisite is to create a test user
+Show AuthState class code snippet
+Mention WebAuthn after Password Autofill
+

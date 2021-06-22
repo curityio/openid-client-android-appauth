@@ -14,49 +14,22 @@
  *  limitations under the License.
  */
 
-package io.curity.identityserver.client
+package io.curity.identityserver.client.views;
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import androidx.fragment.app.activityViewModels
-import io.curity.identityserver.client.databinding.FragmentAuthenticatedBinding
-import io.curity.identityserver.client.error.ApplicationException
-import io.curity.identityserver.client.error.InvalidIdTokenException
-import org.jose4j.jwt.consumer.InvalidJwtException
-import org.jose4j.jwt.consumer.JwtConsumerBuilder
+import androidx.databinding.BaseObservable
 
-class AuthenticatedFragment : androidx.fragment.app.Fragment() {
+class AuthenticatedFragmentViewModel(private val runLogoutInActivity: () -> Unit) : BaseObservable() {
 
-    private lateinit var binding: FragmentAuthenticatedBinding
+    val subject = "SUBJECT"
+    val authenticationDescription = "DESCRIPTION"
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
+    // TODO: receive main view model events
 
-        val mainViewModel: MainActivityViewModel by activityViewModels()
+    /*
+    val idToken = ApplicationStateManager.tokenResponse?.idToken
+    */
 
-        this.binding = FragmentAuthenticatedBinding.inflate(inflater, container, false)
-        this.binding.model = AuthenticatedFragmentViewModel(this.requireContext(), mainViewModel::startLogout)
-        return this.binding.root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        try {
-            val idToken = ApplicationStateManager.tokenResponse?.idToken
-            viewDataFromIdToken(idToken)
-
-        } catch (e: ApplicationException) {
-            // handleError(this, e.errorTitle, e.errorDescription)
-        }
-    }
-
-    private fun viewDataFromIdToken(idToken: String?) {
+    /*private fun viewDataFromIdToken(idToken: String?) {
 
         val jwtConsumer = JwtConsumerBuilder()
             .setSkipSignatureVerification() // Not required in code flow, since the token is fetched from the server using TLS
@@ -82,5 +55,36 @@ class AuthenticatedFragment : androidx.fragment.app.Fragment() {
 
         this.binding.model!!.subject = "$greeting $subject"
         this.binding.model!!.authenticationDescription = "$descriptionPart1 $time $descriptionPart2 $acr"
+    }*/
+
+    fun refreshToken() {
+
+        /*CoroutineScope(Dispatchers.IO).launch {
+
+            val model = this@AuthenticatedFragmentViewModel
+            try {
+                val response = appauth.refreshAccessToken(
+                    ApplicationStateManager.tokenResponse!!.refreshToken!!,
+                    ApplicationStateManager.serverConfiguration,
+                    ApplicationStateManager.registrationResponse
+                )
+
+                withContext(Dispatchers.Main) {
+                    if (response != null) {
+                        ApplicationStateManager.tokenResponse = response
+                    }
+                }
+
+            } catch (exception: ApplicationException) {
+
+                withContext(Dispatchers.Main) {
+                    println(exception)
+                }
+            }
+        }*/
+    }
+
+    fun startLogout() {
+        this.runLogoutInActivity()
     }
 }

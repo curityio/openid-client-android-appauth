@@ -14,18 +14,18 @@
  *  limitations under the License.
  */
 
-package io.curity.identityserver.client
+package io.curity.identityserver.client.views
 
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.activityViewModels
-import io.curity.identityserver.client.databinding.FragmentUnauthenticatedBinding
+import io.curity.identityserver.client.databinding.FragmentAuthenticatedBinding
 
-class UnauthenticatedFragment : androidx.fragment.app.Fragment() {
+class AuthenticatedFragment : androidx.fragment.app.Fragment() {
 
-    private lateinit var binding: FragmentUnauthenticatedBinding
+    private lateinit var binding: FragmentAuthenticatedBinding
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -35,8 +35,8 @@ class UnauthenticatedFragment : androidx.fragment.app.Fragment() {
 
         val mainViewModel: MainActivityViewModel by activityViewModels()
 
-        this.binding = FragmentUnauthenticatedBinding.inflate(inflater, container, false)
-        this.binding.model = UnauthenticatedFragmentViewModel(mainViewModel::startLogin)
+        this.binding = FragmentAuthenticatedBinding.inflate(inflater, container, false)
+        this.binding.model = AuthenticatedFragmentViewModel(mainViewModel::startLogout)
         return this.binding.root
     }
 }

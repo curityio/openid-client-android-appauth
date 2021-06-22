@@ -14,13 +14,16 @@
  *  limitations under the License.
  */
 
-package io.curity.identityserver.client;
+package io.curity.identityserver.client.configuration
 
-import androidx.databinding.BaseObservable
+import android.net.Uri
 
-class UnauthenticatedFragmentViewModel(private val runLoginInActivity: () -> Unit) : BaseObservable() {
-
-    fun startLogin() {
-        this.runLoginInActivity()
-    }
+/*
+ * The fixed OAuth configuration that is sent in a dynamic client registration request
+ */
+object ApplicationConfig {
+    val issuer: Uri = Uri.parse("https://48bd1da6d071.eu.ngrok.io/oauth/v2/oauth-anonymous")
+    const val scope = "openid profile"
+    val redirectUri = Uri.parse("io.curity.client:/callback")
+    val postLogoutRedirectUri = Uri.parse("io.curity.client:/logoutcallback")
 }

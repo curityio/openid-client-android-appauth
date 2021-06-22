@@ -14,12 +14,15 @@
  *  limitations under the License.
  */
 
-package io.curity.identityserver.client
+package io.curity.identityserver.client.views
 
+import android.content.Context
 import android.content.Intent
 import androidx.lifecycle.ViewModel
-import io.curity.identityserver.client.config.ApplicationConfig
-import io.curity.identityserver.client.error.ApplicationException
+import io.curity.identityserver.client.AppAuthHandler
+import io.curity.identityserver.client.ApplicationStateManager
+import io.curity.identityserver.client.configuration.ApplicationConfig
+import io.curity.identityserver.client.errors.ApplicationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -27,25 +30,27 @@ import kotlinx.coroutines.withContext
 import net.openid.appauth.AuthorizationException
 import net.openid.appauth.AuthorizationResponse
 
+/*
+ * Logic triggered from the layout views
+ */
 class MainActivityViewModel() : ViewModel() {
 
-    private lateinit var activity: MainActivity
-    private lateinit var appauth: AppAuthHandler
+    lateinit var events: MainActivityEvents
+    lateinit var appauth: AppAuthHandler
 
-    fun initialize(activity: MainActivity) {
-        this.activity = activity
-        this.appauth = AppAuthHandler(activity)
+    fun initialize(context: Context, events: MainActivityEvents) {
+        this.appauth = AppAuthHandler(context)
+        this.events = events
     }
 
     /*
-     * Lookup metadata and do the dynamic client registration if required
+     * Startup handling to lookup metadata and do the dynamic client registration if required
      * Make HTTP requests on a worker thread and then perform updates on the UI thread
      */
     fun registerIfRequired() {
 
         CoroutineScope(Dispatchers.IO).launch {
 
-            val model = this@MainActivityViewModel
             try {
 
                 val serverConfiguration = appauth.fetchMetadata(ApplicationConfig.issuer)
@@ -58,10 +63,10 @@ class MainActivityViewModel() : ViewModel() {
                     }
                 }
 
-            } catch (exception: ApplicationException) {
+            } catch (ex: ApplicationException) {
 
                 withContext(Dispatchers.Main) {
-                    model.activity.handleError(exception)
+                    handleError(ex)
                 }
             }
         }
@@ -74,9 +79,10 @@ class MainActivityViewModel() : ViewModel() {
 
         val intent = appauth.getAuthorizationRedirectIntent(
             ApplicationStateManager.serverConfiguration,
-            ApplicationStateManager.registrationResponse)
+            ApplicationStateManager.registrationResponse
+        )
 
-        this.activity.startLoginRedirect(intent)
+        events.startLoginRedirect(intent)
     }
 
     /*
@@ -85,33 +91,39 @@ class MainActivityViewModel() : ViewModel() {
      */
     fun endLogin(data: Intent) {
 
-        val model = this@MainActivityViewModel
         CoroutineScope(Dispatchers.IO).launch {
             try {
 
-                val tokenResponse = appauth.handleAuthorizationResponse(
+                val authorizationResponse = appauth.handleAuthorizationResponse(
                     AuthorizationResponse.fromIntent(data),
-                    AuthorizationException.fromIntent(data),
-                    ApplicationStateManager.registrationResponse)
+                    AuthorizationException.fromIntent(data))
 
-                withContext(Dispatchers.Main) {
-                    if (tokenResponse != null) {
-                        ApplicationStateManager.tokenResponse = tokenResponse
-                        model.activity.onLoginSuccess()
+                if (authorizationResponse != null) {
+
+                    val tokenResponse = appauth.redeemCodeForTokens(
+                        authorizationResponse,
+                        ApplicationStateManager.registrationResponse
+                    )
+
+                    withContext(Dispatchers.Main) {
+                        if (tokenResponse != null) {
+                            ApplicationStateManager.tokenResponse = tokenResponse
+                            events.onLoginSuccess()
+                        }
                     }
                 }
 
-            } catch (exception: ApplicationException) {
+            } catch (ex: ApplicationException) {
 
                 withContext(Dispatchers.Main) {
-                    model.activity.handleError(exception)
+                    handleError(ex)
                 }
             }
         }
     }
 
     /*
-     * Build the end session redirect URL and then ask the view to redirect
+     * Build the authorization redirect URL and then ask the view to redirect
      */
     fun startLogout() {
 
@@ -121,14 +133,31 @@ class MainActivityViewModel() : ViewModel() {
             ApplicationStateManager.tokenResponse?.idToken,
             ApplicationConfig.postLogoutRedirectUri)
 
-        activity.startLogoutRedirect(intent)
+        events.startLogoutRedirect(intent)
     }
 
     /*
-     * Clean up after logging out
+     * Clean up after logging out and remove tokens from memory
      */
     fun endLogout(data: Intent) {
-        // appauth.handleAuthorizationResponse()
-        activity.onLogoutSuccess()
+
+        try {
+            appauth.handleEndSessionResponse(
+                AuthorizationResponse.fromIntent(data),
+                AuthorizationException.fromIntent(data))
+
+            ApplicationStateManager.tokenResponse = null
+            events.onLogoutSuccess()
+
+        } catch (ex: ApplicationException) {
+            handleError(ex)
+        }
+    }
+
+    /*
+     * This is called by fragments
+     */
+    private fun handleError(ex: ApplicationException) {
+        events.handleError(ex)
     }
 }

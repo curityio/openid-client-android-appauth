@@ -14,30 +14,46 @@
  *  limitations under the License.
  */
 
-package io.curity.identityserver.client
+package io.curity.identityserver.client.views
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.navigation.fragment.NavHostFragment
+import io.curity.identityserver.client.R
 import io.curity.identityserver.client.databinding.ActivityMainBinding
-import io.curity.identityserver.client.error.ApplicationException
+import io.curity.identityserver.client.errors.ApplicationException
 import kotlinx.android.synthetic.main.activity_main.toolbar
 
-class MainActivity : AppCompatActivity() {
+/*
+ * The main activity is just a container of fragments
+ */
+class MainActivity : AppCompatActivity(), MainActivityEvents {
 
     private lateinit var binding: ActivityMainBinding
-    private val REQUEST_CODE_AUTHORIZATION_INTENT = 100
-    private val REQUEST_CODE_END_SESSION_INTENT   = 101
+
+    val loginLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            this.binding.model!!.endLogin(result.data!!)
+        }
+    }
+
+    val logoutLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            this.binding.model!!.endLogout(result.data!!)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
 
         val model: MainActivityViewModel by viewModels()
-        model.initialize(this)
+        model.initialize(this, this)
 
         this.binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         setSupportActionBar(toolbar)
@@ -46,38 +62,26 @@ class MainActivity : AppCompatActivity() {
         this.binding.model!!.registerIfRequired()
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-
-        super.onActivityResult(requestCode, resultCode, data)
-
-        if (requestCode == REQUEST_CODE_AUTHORIZATION_INTENT && data != null) {
-            this.binding.model!!.endLogin(data)
-        }
-        else if (requestCode == REQUEST_CODE_END_SESSION_INTENT && data != null) {
-            this.binding.model!!.endLogout(data)
-        }
+    override fun startLoginRedirect(intent: Intent) {
+        loginLauncher.launch(intent)
     }
 
-    fun startLoginRedirect(intent: Intent) {
-        this.startActivityForResult(intent, REQUEST_CODE_AUTHORIZATION_INTENT)
-    }
-
-    fun onLoginSuccess() {
+    override fun onLoginSuccess() {
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         navHostFragment.navController.navigate(R.id.fragment_authenticated)
     }
 
-    fun startLogoutRedirect(intent: Intent) {
-        this.startActivityForResult(intent, REQUEST_CODE_END_SESSION_INTENT)
+    override fun startLogoutRedirect(intent: Intent) {
+        logoutLauncher.launch(intent)
     }
 
-    fun onLogoutSuccess() {
+    override fun onLogoutSuccess() {
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         navHostFragment.navController.navigate(R.id.fragment_unauthenticated)
     }
 
-    fun handleError(exception: ApplicationException) {
+    override fun handleError(ex: ApplicationException) {
         val errorFragment = this.supportFragmentManager.findFragmentById(R.id.fragment_error) as ErrorFragment
-        errorFragment.reportError(exception)
+        errorFragment.reportError(ex)
     }
 }

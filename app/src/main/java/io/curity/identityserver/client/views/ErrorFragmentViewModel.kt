@@ -14,13 +14,20 @@
  *  limitations under the License.
  */
 
-package io.curity.identityserver.client.config
+package io.curity.identityserver.client.views
 
-import android.net.Uri
+import androidx.databinding.BaseObservable
+import io.curity.identityserver.client.errors.ApplicationException
+import io.curity.identityserver.client.errors.GENERIC_ERROR
 
-object ApplicationConfig {
-    val issuer: Uri = Uri.parse("https://b073490bc571.eu.ngrok.io/oauth/v2/oauth-anonymous")
-    const val scope = "openid profile"
-    val redirectUri = Uri.parse("io.curity.client:/callback")
-    val postLogoutRedirectUri = Uri.parse("io.curity.client:/logoutcallback")
+class ErrorFragmentViewModel : BaseObservable() {
+
+    var title = ""
+    var description = ""
+
+    fun setErrorDetails(ex: ApplicationException) {
+        this.title = ex.errorTitle
+        this.description = ex.errorDescription ?: GENERIC_ERROR
+        this.notifyChange()
+    }
 }

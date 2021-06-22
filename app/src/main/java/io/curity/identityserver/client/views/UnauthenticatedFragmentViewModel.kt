@@ -14,20 +14,13 @@
  *  limitations under the License.
  */
 
-package io.curity.identityserver.client
+package io.curity.identityserver.client.views;
 
 import androidx.databinding.BaseObservable
-import io.curity.identityserver.client.error.ApplicationException
-import io.curity.identityserver.client.error.GENERIC_ERROR
 
-class ErrorFragmentViewModel : BaseObservable() {
+class UnauthenticatedFragmentViewModel(private val runLoginInActivity: () -> Unit) : BaseObservable() {
 
-    var title = ""
-    var description = ""
-
-    fun setErrorDetails(exception: ApplicationException) {
-        this.title = exception.errorTitle
-        this.description = exception.errorDescription ?: GENERIC_ERROR
-        this.notifyChange()
+    fun startLogin() {
+        this.runLoginInActivity()
     }
 }
