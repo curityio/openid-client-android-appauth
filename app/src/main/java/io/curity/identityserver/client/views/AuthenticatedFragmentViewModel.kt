@@ -17,49 +17,54 @@
 package io.curity.identityserver.client.views;
 
 import androidx.databinding.BaseObservable
+import io.curity.identityserver.client.AppAuthHandler
+import io.curity.identityserver.client.ApplicationStateManager
+import io.curity.identityserver.client.R
+import io.curity.identityserver.client.errors.ApplicationException
+import io.curity.identityserver.client.errors.InvalidIdTokenException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.jose4j.jwt.JwtClaims
+import org.jose4j.jwt.consumer.InvalidJwtException
+import org.jose4j.jwt.consumer.JwtConsumerBuilder
 
-class AuthenticatedFragmentViewModel(private val runLogoutInActivity: () -> Unit) : BaseObservable() {
+class AuthenticatedFragmentViewModel(
+    private val appauth: AppAuthHandler,
+    private val getString: (Int) -> String,
+    private val handleError: (ApplicationException) -> Unit,
+    private val runLogoutInActivity: () -> Unit) : BaseObservable() {
 
-    val subject = "SUBJECT"
-    val authenticationDescription = "DESCRIPTION"
+    var subject = ""
+    var authenticationDescription = ""
 
-    // TODO: receive main view model events
+    fun processTokens() {
 
-    /*
-    val idToken = ApplicationStateManager.tokenResponse?.idToken
-    */
+        val idToken = ApplicationStateManager.tokenResponse?.idToken
+        if (idToken != null) {
 
-    /*private fun viewDataFromIdToken(idToken: String?) {
+            try {
+                val jwtClaims = readIdTokenClaims(idToken)
 
-        val jwtConsumer = JwtConsumerBuilder()
-            .setSkipSignatureVerification() // Not required in code flow, since the token is fetched from the server using TLS
-            .setRequireSubject()
-            .setAllowedClockSkewInSeconds(30)
-            .setExpectedIssuer(ApplicationStateManager.serverConfiguration.discoveryDoc?.issuer)
-            .setExpectedAudience(ApplicationStateManager.registrationResponse.clientId)
-            .build()
+                val greeting = getString(R.string.authenticated_greeting)
+                val descriptionPart1 = getString(R.string.authn_description1)
+                val descriptionPart2 = getString(R.string.authn_description2)
+                val time = jwtClaims.getNumericDateClaimValue("auth_time")
+                val acr = jwtClaims.getClaimValueAsString("acr")
 
-        val jwtClaims = try {
-            jwtConsumer.processToClaims(idToken)
-        } catch (e: InvalidJwtException) {
-            throw InvalidIdTokenException(e.message ?: "Failed to parse id token")
+                subject = "$greeting ${jwtClaims.subject}"
+                authenticationDescription = "$descriptionPart1 $time $descriptionPart2 $acr"
+
+            } catch(ex: ApplicationException) {
+                handleError(ex)
+            }
         }
-
-        val greeting = getString(R.string.authenticated_greeting)
-        val subject = jwtClaims.subject
-
-        val descriptionPart1 = getString(R.string.authn_description1)
-        val descriptionPart2 = getString(R.string.authn_description2)
-        val time = jwtClaims.getNumericDateClaimValue("auth_time")
-        val acr = jwtClaims.getClaimValueAsString("acr")
-
-        this.binding.model!!.subject = "$greeting $subject"
-        this.binding.model!!.authenticationDescription = "$descriptionPart1 $time $descriptionPart2 $acr"
-    }*/
+    }
 
     fun refreshToken() {
 
-        /*CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(Dispatchers.IO).launch {
 
             val model = this@AuthenticatedFragmentViewModel
             try {
@@ -75,16 +80,33 @@ class AuthenticatedFragmentViewModel(private val runLogoutInActivity: () -> Unit
                     }
                 }
 
-            } catch (exception: ApplicationException) {
+            } catch (ex: ApplicationException) {
 
                 withContext(Dispatchers.Main) {
-                    println(exception)
+                    handleError(ex)
                 }
             }
-        }*/
+        }
     }
 
     fun startLogout() {
-        this.runLogoutInActivity()
+        runLogoutInActivity()
+    }
+
+    private fun readIdTokenClaims(idToken: String): JwtClaims {
+
+        val jwtConsumer = JwtConsumerBuilder()
+            .setSkipSignatureVerification()
+            .setRequireSubject()
+            .setAllowedClockSkewInSeconds(30)
+            .setExpectedIssuer(ApplicationStateManager.serverConfiguration.discoveryDoc?.issuer)
+            .setExpectedAudience(ApplicationStateManager.registrationResponse.clientId)
+            .build()
+
+        try {
+            return jwtConsumer.processToClaims(idToken)
+        } catch (e: InvalidJwtException) {
+            throw InvalidIdTokenException(e.message ?: "Failed to parse id token")
+        }
     }
 }

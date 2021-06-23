@@ -36,7 +36,16 @@ class AuthenticatedFragment : androidx.fragment.app.Fragment() {
         val mainViewModel: MainActivityViewModel by activityViewModels()
 
         this.binding = FragmentAuthenticatedBinding.inflate(inflater, container, false)
-        this.binding.model = AuthenticatedFragmentViewModel(mainViewModel::startLogout)
+        this.binding.model = AuthenticatedFragmentViewModel(
+            mainViewModel.appauth,
+            this::getString,
+            mainViewModel::handleError,
+            mainViewModel::startLogout)
         return this.binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        this.binding.model!!.processTokens()
     }
 }

@@ -157,7 +157,7 @@ class MainActivityViewModel() : ViewModel() {
     /*
      * This is called by fragments
      */
-    private fun handleError(ex: ApplicationException) {
+    fun handleError(ex: ApplicationException) {
         events.handleError(ex)
     }
 }

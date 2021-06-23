@@ -25,14 +25,6 @@
         </com.google.android.material.appbar.AppBarLayout>
 
         <fragment
-            android:id="@+id/nav_host_fragment"
-            android:name="androidx.navigation.fragment.NavHostFragment"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:defaultNavHost="true"
-            app:navGraph="@navigation/nav_graph"/>
-
-        <fragment
             android:id="@+id/fragment_error"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -40,5 +32,14 @@
             android:name="io.curity.identityserver.client.views.ErrorFragment"
             tools:layout="@layout/fragment_error">
         </fragment>
+
+        <fragment
+            android:id="@+id/nav_host_fragment"
+            android:name="androidx.navigation.fragment.NavHostFragment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:defaultNavHost="true"
+            app:navGraph="@navigation/nav_graph"/>
+
     </LinearLayout>
 </layout>
