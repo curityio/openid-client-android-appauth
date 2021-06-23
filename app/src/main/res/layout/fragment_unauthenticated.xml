@@ -30,6 +30,8 @@
             android:layout_height="wrap_content"
             android:text="@string/login_button"
             android:onClick="@{() -> model.startLogin()}"
+            android:layout_marginBottom="25dp"
+            android:enabled="@{model.isRegistered}"
             style="@style/ButtonStyle"/>
     </LinearLayout>
 </layout>

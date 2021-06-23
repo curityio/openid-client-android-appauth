@@ -17,13 +17,6 @@
             android:textSize="24sp"
             android:textStyle="bold" />
         <TextView
-            android:id="@+id/errorCode"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@{model.code}"
-            android:layout_marginTop="20dp"
-            android:textAlignment="center" />
-        <TextView
             android:id="@+id/errorDescription"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

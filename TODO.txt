@@ -26,10 +26,6 @@ AppAuth examples use old style navigation which makes the OAuth harder to follow
 Simpler code makes handling of errors a bit simpler
 Multiple ways to code an Android app and solution can be adapted
 
-ARTICLE POINTS
---------------
-Mention how a prerequisite is to create a test user
-
 FEEDBACK
 --------
 Daniel: HAAPI and old device versions feature switch

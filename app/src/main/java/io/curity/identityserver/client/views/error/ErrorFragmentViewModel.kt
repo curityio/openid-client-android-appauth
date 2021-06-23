@@ -23,12 +23,10 @@ import io.curity.identityserver.client.errors.GENERIC_ERROR
 class ErrorFragmentViewModel : BaseObservable() {
 
     var title = ""
-    var code = ""
     var description = ""
 
     fun setErrorDetails(ex: ApplicationException) {
         this.title = ex.errorTitle
-        this.code = ex.errorCode ?: ""
         this.description = ex.errorDescription ?: GENERIC_ERROR
         this.notifyChange()
     }

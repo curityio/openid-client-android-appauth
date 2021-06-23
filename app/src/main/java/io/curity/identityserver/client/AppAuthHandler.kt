@@ -62,7 +62,7 @@ class AppAuthHandler(val context: Context) {
                         continuation.resume(config)
                     }
                     else -> {
-                        val error = createAuthorizationError("fetchFromIssuer", ex)
+                        val error = createAuthorizationError("Metadata Download Error", ex)
                         continuation.resumeWithException(error)
                     }
                 }
@@ -99,7 +99,7 @@ class AppAuthHandler(val context: Context) {
                         continuation.resume(registrationResponse)
                     }
                     else -> {
-                        val error = createAuthorizationError("performRegistrationRequest", ex)
+                        val error = createAuthorizationError("Registration Error", ex)
                         continuation.resumeWithException(error)
                     }
                 }
@@ -262,19 +262,26 @@ class AppAuthHandler(val context: Context) {
      */
     private fun createAuthorizationError(title: String, ex: AuthorizationException?): ServerCommunicationException {
 
-        val code: String = if (ex?.error != null) {
+        val code: String? = if (ex?.error != null) {
             ex.error!!
         } else {
-            GENERIC_ERROR
+            null
         }
 
-        val description: String = if (ex?.error != null) {
-            ex.errorDescription ?: GENERIC_ERROR
+        val description: String = if (ex?.errorDescription != null) {
+            ex.errorDescription!!
         } else {
             GENERIC_ERROR
         }
 
-        Log.e(ContentValues.TAG, "$title, $code, $description")
-        return ServerCommunicationException(title, description, code)
+        val fullDescription: String
+        if (code != null) {
+            fullDescription = "$code : $description"
+        } else {
+            fullDescription = description
+        }
+
+        Log.e(ContentValues.TAG, "$title : $fullDescription")
+        return ServerCommunicationException(title, fullDescription)
     }
 }

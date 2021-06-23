@@ -28,10 +28,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.openid.appauth.AuthorizationException
 import net.openid.appauth.AuthorizationResponse
+import net.openid.appauth.RegistrationResponse
 
 class UnauthenticatedFragmentViewModel(
     private val events: UnauthenticatedFragmentEvents,
     private val appauth: AppAuthHandler) : BaseObservable() {
+
+    var isRegistered = false
 
     /*
      * Startup handling to lookup metadata and do the dynamic client registration if required
@@ -43,20 +46,24 @@ class UnauthenticatedFragmentViewModel(
 
             try {
 
-                val serverConfiguration = appauth.fetchMetadata(ApplicationConfig.issuer)
+                ApplicationStateManager.serverConfiguration = appauth.fetchMetadata(ApplicationConfig.issuer)
                 if (!ApplicationStateManager.isRegistered()) {
-                    val registrationResponse = appauth.registerClient(serverConfiguration)
+                    ApplicationStateManager.registrationResponse = appauth.registerClient(ApplicationStateManager.serverConfiguration)
+                }
 
-                    withContext(Dispatchers.Main) {
-                        ApplicationStateManager.serverConfiguration = serverConfiguration
-                        ApplicationStateManager.registrationResponse = registrationResponse
-                    }
+                withContext(Dispatchers.Main) {
+
+                    isRegistered = true
+                    notifyChange()
                 }
 
             } catch (ex: ApplicationException) {
 
+                println("GJA caught exception")
                 withContext(Dispatchers.Main) {
+                    println("GJA handling exception")
                     events.handleError(ex)
+                    println("GJA handled exception")
                 }
             }
         }

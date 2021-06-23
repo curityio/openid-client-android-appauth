@@ -23,7 +23,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.navigation.fragment.NavHostFragment
 import io.curity.identityserver.client.R
 import io.curity.identityserver.client.databinding.ActivityMainBinding
-import kotlinx.android.synthetic.main.activity_main.toolbar
+//import kotlinx.android.synthetic.main.activity_main.toolbar
 
 class MainActivity : AppCompatActivity() {
 
@@ -38,7 +38,6 @@ class MainActivity : AppCompatActivity() {
 
         this.binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         this.binding.model = model
-        setSupportActionBar(toolbar)
     }
 
     fun postLoginNavigate() {
