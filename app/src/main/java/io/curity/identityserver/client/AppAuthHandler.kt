@@ -192,7 +192,7 @@ class AppAuthHandler(val context: Context) {
         return suspendCoroutine { continuation ->
 
             val extraParams = mapOf("client_secret" to registrationResponse.clientSecret)
-            val tokenRequest = TokenRequest.Builder(serverConfiguration, registrationResponse.clientId + "X")
+            val tokenRequest = TokenRequest.Builder(serverConfiguration, registrationResponse.clientId)
                 .setGrantType(GrantTypeValues.REFRESH_TOKEN)
                 .setRefreshToken(refreshToken)
                 .setAdditionalParameters(extraParams)

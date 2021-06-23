@@ -1,10 +1,10 @@
 FEATURES
 --------
 Nicer colours in line with HAAPI
-Use image from HAAPI sample and padding at bottom
-Update ServerCommunication error to include code + description fields
-Disable buttons when cannot get metadata etc
-Mention how to get a DCR token and use a client secret
+Use image from HAAPI sample
+Disable login button when cannot get metadata
+Remove errors for next operation
+DCR token with a client secret
 
 TWEAKS
 ------
@@ -28,10 +28,7 @@ Multiple ways to code an Android app and solution can be adapted
 
 ARTICLE POINTS
 --------------
-Briefly discuss OAuth error responses in the write up
 Mention how a prerequisite is to create a test user
-Show AuthState class code snippet
-Mention WebAuthn after Password Autofill
 
 FEEDBACK
 --------

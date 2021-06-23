@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <data>
         <variable name="model" type="io.curity.identityserver.client.views.MainActivityViewModel" />
@@ -23,15 +23,6 @@
                 app:popupTheme="@style/AppTheme.PopupOverlay" />
 
         </com.google.android.material.appbar.AppBarLayout>
-
-        <androidx.fragment.app.FragmentContainerView
-            android:id="@+id/fragment_error"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:name="io.curity.identityserver.client.views.error.ErrorFragment"
-            tools:layout="@layout/fragment_error">
-        </androidx.fragment.app.FragmentContainerView>
 
         <androidx.fragment.app.FragmentContainerView
             android:id="@+id/nav_host_fragment"

@@ -23,8 +23,6 @@ import androidx.databinding.DataBindingUtil
 import androidx.navigation.fragment.NavHostFragment
 import io.curity.identityserver.client.R
 import io.curity.identityserver.client.databinding.ActivityMainBinding
-import io.curity.identityserver.client.errors.ApplicationException
-import io.curity.identityserver.client.views.error.ErrorFragment
 import kotlinx.android.synthetic.main.activity_main.toolbar
 
 class MainActivity : AppCompatActivity() {
@@ -51,10 +49,5 @@ class MainActivity : AppCompatActivity() {
     fun postLogoutNavigate() {
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         navHostFragment.navController.navigate(R.id.fragment_unauthenticated)
-    }
-
-    fun handleError(ex: ApplicationException) {
-        val errorFragment = this.supportFragmentManager.findFragmentById(R.id.fragment_error) as ErrorFragment
-        errorFragment.reportError(ex)
     }
 }

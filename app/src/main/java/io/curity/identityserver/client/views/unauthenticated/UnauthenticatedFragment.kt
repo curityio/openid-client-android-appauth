@@ -24,10 +24,12 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.activityViewModels
+import io.curity.identityserver.client.R
 import io.curity.identityserver.client.databinding.FragmentUnauthenticatedBinding
 import io.curity.identityserver.client.errors.ApplicationException
 import io.curity.identityserver.client.views.MainActivity
 import io.curity.identityserver.client.views.MainActivityViewModel
+import io.curity.identityserver.client.views.error.ErrorFragment
 
 class UnauthenticatedFragment : androidx.fragment.app.Fragment(), UnauthenticatedFragmentEvents {
 
@@ -67,7 +69,7 @@ class UnauthenticatedFragment : androidx.fragment.app.Fragment(), Unauthenticate
     }
 
     override fun handleError(ex: ApplicationException) {
-        val mainActivity = this.activity as MainActivity
-        mainActivity.handleError(ex)
+        val errorFragment = this.childFragmentManager.findFragmentById(R.id.fragment_unauthenticated_error) as ErrorFragment
+        errorFragment.reportError(ex)
     }
 }
