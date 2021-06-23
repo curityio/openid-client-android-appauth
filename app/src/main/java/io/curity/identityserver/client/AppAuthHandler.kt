@@ -212,10 +212,12 @@ class AppAuthHandler(val context: Context) {
                             ex.type == AuthorizationException.TYPE_OAUTH_TOKEN_ERROR &&
                             ex.code.equals(AuthorizationException.TokenRequestErrors.INVALID_GRANT.code)) {
                             continuation.resume(null)
-                        }
 
-                        val error = createAuthorizationError("refreshAccessToken failed", ex)
-                        continuation.resumeWithException(error)
+                        } else {
+
+                            val error = createAuthorizationError("refreshAccessToken failed", ex)
+                            continuation.resumeWithException(error)
+                        }
                     }
                 }
             }

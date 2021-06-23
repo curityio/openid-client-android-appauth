@@ -16,81 +16,104 @@
 
 package io.curity.identityserver.client.views;
 
+import android.content.Intent
 import androidx.databinding.BaseObservable
 import io.curity.identityserver.client.AppAuthHandler
 import io.curity.identityserver.client.ApplicationStateManager
 import io.curity.identityserver.client.R
+import io.curity.identityserver.client.configuration.ApplicationConfig
 import io.curity.identityserver.client.errors.ApplicationException
 import io.curity.identityserver.client.errors.InvalidIdTokenException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import net.openid.appauth.AuthorizationException
+import net.openid.appauth.AuthorizationResponse
 import org.jose4j.jwt.JwtClaims
 import org.jose4j.jwt.consumer.InvalidJwtException
 import org.jose4j.jwt.consumer.JwtConsumerBuilder
 
 class AuthenticatedFragmentViewModel(
-    private val appauth: AppAuthHandler,
-    private val getString: (Int) -> String,
-    private val handleError: (ApplicationException) -> Unit,
-    private val runLogoutInActivity: () -> Unit) : BaseObservable() {
+    private val events: AuthenticatedFragmentEvents,
+    private val appauth: AppAuthHandler) : BaseObservable() {
 
     var subject = ""
     var authenticationDescription = ""
 
     fun processTokens() {
 
-        val idToken = ApplicationStateManager.tokenResponse?.idToken
-        if (idToken != null) {
+        val idToken = ApplicationStateManager.tokenResponse?.idToken ?: return
 
-            try {
-                val jwtClaims = readIdTokenClaims(idToken)
+        try {
+            val jwtClaims = readIdTokenClaims(idToken)
 
-                val greeting = getString(R.string.authenticated_greeting)
-                val descriptionPart1 = getString(R.string.authn_description1)
-                val descriptionPart2 = getString(R.string.authn_description2)
-                val time = jwtClaims.getNumericDateClaimValue("auth_time")
-                val acr = jwtClaims.getClaimValueAsString("acr")
+            val greeting = events.getString(R.string.authenticated_greeting)
+            val descriptionPart1 = events.getString(R.string.authn_description1)
+            val descriptionPart2 = events.getString(R.string.authn_description2)
+            val time = jwtClaims.getNumericDateClaimValue("auth_time")
+            val acr = jwtClaims.getClaimValueAsString("acr")
 
-                subject = "$greeting ${jwtClaims.subject}"
-                authenticationDescription = "$descriptionPart1 $time $descriptionPart2 $acr"
+            subject = "$greeting ${jwtClaims.subject}"
+            authenticationDescription = "$descriptionPart1 $time $descriptionPart2 $acr"
 
-            } catch(ex: ApplicationException) {
-                handleError(ex)
-            }
+        } catch(ex: ApplicationException) {
+            events.handleError(ex)
         }
     }
 
-    fun refreshToken() {
+    fun refreshAccessToken() {
+
+        val refreshToken = ApplicationStateManager.tokenResponse?.refreshToken ?: return
 
         CoroutineScope(Dispatchers.IO).launch {
 
             val model = this@AuthenticatedFragmentViewModel
             try {
-                val response = appauth.refreshAccessToken(
-                    ApplicationStateManager.tokenResponse!!.refreshToken!!,
+
+                val response = model.appauth.refreshAccessToken(
+                    refreshToken,
                     ApplicationStateManager.serverConfiguration,
                     ApplicationStateManager.registrationResponse
                 )
 
                 withContext(Dispatchers.Main) {
-                    if (response != null) {
-                        ApplicationStateManager.tokenResponse = response
-                    }
+                    ApplicationStateManager.tokenResponse = response
                 }
 
             } catch (ex: ApplicationException) {
 
                 withContext(Dispatchers.Main) {
-                    handleError(ex)
+                    model.events.handleError(ex)
                 }
             }
         }
     }
 
     fun startLogout() {
-        runLogoutInActivity()
+
+        val intent = appauth.getEndSessionRedirectIntent(
+            ApplicationStateManager.serverConfiguration,
+            ApplicationStateManager.registrationResponse,
+            ApplicationStateManager.tokenResponse?.idToken,
+            ApplicationConfig.postLogoutRedirectUri)
+
+        events.startLogoutRedirect(intent)
+    }
+
+    fun endLogout(data: Intent) {
+
+        try {
+            appauth.handleEndSessionResponse(
+                AuthorizationResponse.fromIntent(data),
+                AuthorizationException.fromIntent(data))
+
+            ApplicationStateManager.tokenResponse = null
+            events.onLogoutSuccess()
+
+        } catch (ex: ApplicationException) {
+            events.handleError(ex)
+        }
     }
 
     private fun readIdTokenClaims(idToken: String): JwtClaims {

@@ -16,16 +16,26 @@
 
 package io.curity.identityserver.client.views
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.activityViewModels
 import io.curity.identityserver.client.databinding.FragmentAuthenticatedBinding
+import io.curity.identityserver.client.errors.ApplicationException
 
-class AuthenticatedFragment : androidx.fragment.app.Fragment() {
+class AuthenticatedFragment : androidx.fragment.app.Fragment(), AuthenticatedFragmentEvents {
 
     private lateinit var binding: FragmentAuthenticatedBinding
+
+    private val logoutLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            this.binding.model!!.endLogout(result.data!!)
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -36,16 +46,28 @@ class AuthenticatedFragment : androidx.fragment.app.Fragment() {
         val mainViewModel: MainActivityViewModel by activityViewModels()
 
         this.binding = FragmentAuthenticatedBinding.inflate(inflater, container, false)
-        this.binding.model = AuthenticatedFragmentViewModel(
-            mainViewModel.appauth,
-            this::getString,
-            mainViewModel::handleError,
-            mainViewModel::startLogout)
+        this.binding.model = AuthenticatedFragmentViewModel(this, mainViewModel.appauth)
         return this.binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         this.binding.model!!.processTokens()
+    }
+
+    override fun startLogoutRedirect(intent: Intent) {
+        logoutLauncher.launch(intent)
+    }
+
+    override fun onLogoutSuccess() {
+
+        val mainActivity = this.activity as MainActivity
+        mainActivity.postLogoutNavigate()
+    }
+
+    override fun handleError(ex: ApplicationException) {
+
+        val mainActivity = this.activity as MainActivity
+        mainActivity.handleError(ex)
     }
 }

@@ -1,38 +1,36 @@
-CODE STRUCTURE 1
-----------------
-Get refresh token errors and id token parsing reporting properly
-Do this using mainviewmodelevents in authenticatedfragmentviewmodel
-
-CODE STRUCTURE 2
-----------------
-Move code from mainactivity to unauthenticated and authenticated fragments
-
-ERRORS
+TWEAKS
 ------
-Briefly dicuss OAuth error responses in the write up
+ApplicationStateManager updates on any thread to simplify code
+setSupportActionBar
+Clean up dependencies
+Fix warnings
 
-FIXES
------
+BUGS
+----
 Logs output registration response instead of message???
 Logout only works sometimes
 
-UI / POLISH
------------
-Refinements a little in line with iOS HAAPI sample and better use of colours
-Display details about valid access tokens as well as id tokens
-Clean up dependencies
-
-SECURITY
+FEATURES
 --------
-Discuss with Jacob whether to use Authenticated DCR
-Separate implicit flow client to get a DCR token will create inconsistent code
-HAAPI and old device versions mentioned by Daniel
+Show access and refresh tokens
+Bigger buttons in line with HAAPI
+Nicer colours in line with HAAPI
+Mention how to get a DCR token and use a client secret
 
-ARTICLES
---------
+CODING MODEL
+------------
+Brief doc to describe this
 Mention most mainstream coding style is single activity
 Mention multiple ways to code an Android app and solution can be adapted - eg official samples transfer between activities
+
+ARTICLE POINTS
+--------------
+Briefly discuss OAuth error responses in the write up
 Mention how a prerequisite is to create a test user
 Show AuthState class code snippet
 Mention WebAuthn after Password Autofill
 
+FEEDBACK
+--------
+Daniel: HAAPI and old device versions feature switch
+Daniel: Authenticated DCR should use implicit flow but creates a messy sample

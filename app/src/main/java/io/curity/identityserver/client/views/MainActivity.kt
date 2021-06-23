@@ -16,10 +16,7 @@
 
 package io.curity.identityserver.client.views
 
-import android.app.Activity
-import android.content.Intent
 import android.os.Bundle
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
@@ -29,58 +26,33 @@ import io.curity.identityserver.client.databinding.ActivityMainBinding
 import io.curity.identityserver.client.errors.ApplicationException
 import kotlinx.android.synthetic.main.activity_main.toolbar
 
-/*
- * The main activity is just a container of fragments
- */
-class MainActivity : AppCompatActivity(), MainActivityEvents {
+class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-
-    val loginLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            this.binding.model!!.endLogin(result.data!!)
-        }
-    }
-
-    val logoutLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            this.binding.model!!.endLogout(result.data!!)
-        }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
 
         val model: MainActivityViewModel by viewModels()
-        model.initialize(this, this)
+        model.initialize(this)
 
         this.binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
-        setSupportActionBar(toolbar)
-
         this.binding.model = model
-        this.binding.model!!.registerIfRequired()
+        setSupportActionBar(toolbar)
     }
 
-    override fun startLoginRedirect(intent: Intent) {
-        loginLauncher.launch(intent)
-    }
-
-    override fun onLoginSuccess() {
+    fun postLoginNavigate() {
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         navHostFragment.navController.navigate(R.id.fragment_authenticated)
     }
 
-    override fun startLogoutRedirect(intent: Intent) {
-        logoutLauncher.launch(intent)
-    }
-
-    override fun onLogoutSuccess() {
+    fun postLogoutNavigate() {
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         navHostFragment.navController.navigate(R.id.fragment_unauthenticated)
     }
 
-    override fun handleError(ex: ApplicationException) {
+    fun handleError(ex: ApplicationException) {
         val errorFragment = this.supportFragmentManager.findFragmentById(R.id.fragment_error) as ErrorFragment
         errorFragment.reportError(ex)
     }

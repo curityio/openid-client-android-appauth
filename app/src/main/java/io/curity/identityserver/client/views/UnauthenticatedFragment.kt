@@ -16,16 +16,26 @@
 
 package io.curity.identityserver.client.views
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.activityViewModels
 import io.curity.identityserver.client.databinding.FragmentUnauthenticatedBinding
+import io.curity.identityserver.client.errors.ApplicationException
 
-class UnauthenticatedFragment : androidx.fragment.app.Fragment() {
+class UnauthenticatedFragment : androidx.fragment.app.Fragment(), UnauthenticatedFragmentEvents {
 
     private lateinit var binding: FragmentUnauthenticatedBinding
+
+    private val loginLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            this.binding.model!!.endLogin(result.data!!)
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -36,7 +46,26 @@ class UnauthenticatedFragment : androidx.fragment.app.Fragment() {
         val mainViewModel: MainActivityViewModel by activityViewModels()
 
         this.binding = FragmentUnauthenticatedBinding.inflate(inflater, container, false)
-        this.binding.model = UnauthenticatedFragmentViewModel(mainViewModel::startLogin)
+        this.binding.model = UnauthenticatedFragmentViewModel(this, mainViewModel.appauth)
         return this.binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        this.binding.model!!.registerIfRequired()
+    }
+
+    override fun startLoginRedirect(intent: Intent) {
+        loginLauncher.launch(intent)
+    }
+
+    override fun onLoginSuccess() {
+        val mainActivity = this.activity as MainActivity
+        mainActivity.postLoginNavigate()
+    }
+
+    override fun handleError(ex: ApplicationException) {
+        val mainActivity = this.activity as MainActivity
+        mainActivity.handleError(ex)
     }
 }
