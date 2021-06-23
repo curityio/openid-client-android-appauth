@@ -12,7 +12,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@{model.title}"
-            android:layout_marginTop="20dp"
+            android:textColor="@color/colorRed"
+            android:layout_marginBottom="20dp"
             android:textAlignment="center"
             android:textSize="24sp"
             android:textStyle="bold" />
@@ -21,7 +22,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@{model.description}"
-            android:layout_marginTop="20dp"
+            android:textColor="@color/colorRed"
+            android:layout_marginBottom="20dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
             android:textAlignment="center" />
     </LinearLayout>
 

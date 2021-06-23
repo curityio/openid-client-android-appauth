@@ -20,7 +20,6 @@ import android.content.Intent
 import androidx.databinding.BaseObservable
 import io.curity.identityserver.client.AppAuthHandler
 import io.curity.identityserver.client.ApplicationStateManager
-import io.curity.identityserver.client.R
 import io.curity.identityserver.client.configuration.ApplicationConfig
 import io.curity.identityserver.client.errors.ApplicationException
 import io.curity.identityserver.client.errors.InvalidIdTokenException
@@ -47,8 +46,10 @@ class AuthenticatedFragmentViewModel(
         val idToken = ApplicationStateManager.idToken ?: return
 
         try {
+            // val jwtClaims = readIdTokenClaims("X" + idToken + "X")
             val jwtClaims = readIdTokenClaims(idToken)
-            subject = "Hello ${jwtClaims.subject}"
+
+            subject = "Subject: ${jwtClaims.subject}"
             accessToken = "Access Token: ${ApplicationStateManager.tokenResponse?.accessToken}"
             refreshToken = "Refresh Token: ${ApplicationStateManager.tokenResponse?.refreshToken}"
             notifyChange()
@@ -68,8 +69,8 @@ class AuthenticatedFragmentViewModel(
 
                 val response = this@AuthenticatedFragmentViewModel.appauth.refreshAccessToken(
                     refreshToken,
-                    ApplicationStateManager.serverConfiguration,
-                    ApplicationStateManager.registrationResponse
+                    ApplicationStateManager.serverConfiguration!!,
+                    ApplicationStateManager.registrationResponse!!
                 )
 
                 withContext(Dispatchers.Main) {
@@ -89,8 +90,8 @@ class AuthenticatedFragmentViewModel(
     fun startLogout() {
 
         val intent = appauth.getEndSessionRedirectIntent(
-            ApplicationStateManager.serverConfiguration,
-            ApplicationStateManager.registrationResponse,
+            ApplicationStateManager.serverConfiguration!!,
+            ApplicationStateManager.registrationResponse!!,
             ApplicationStateManager.idToken,
             ApplicationConfig.postLogoutRedirectUri)
 
@@ -100,10 +101,7 @@ class AuthenticatedFragmentViewModel(
     fun endLogout(data: Intent) {
 
         try {
-            appauth.handleEndSessionResponse(
-                AuthorizationResponse.fromIntent(data),
-                AuthorizationException.fromIntent(data))
-
+            appauth.handleEndSessionResponse(AuthorizationException.fromIntent(data))
             ApplicationStateManager.tokenResponse = null
             events.onLogoutSuccess()
 
@@ -118,8 +116,8 @@ class AuthenticatedFragmentViewModel(
             .setSkipSignatureVerification()
             .setRequireSubject()
             .setAllowedClockSkewInSeconds(30)
-            .setExpectedIssuer(ApplicationStateManager.serverConfiguration.discoveryDoc?.issuer)
-            .setExpectedAudience(ApplicationStateManager.registrationResponse.clientId)
+            .setExpectedIssuer(ApplicationStateManager.serverConfiguration?.discoveryDoc?.issuer)
+            .setExpectedAudience(ApplicationStateManager.registrationResponse?.clientId)
             .build()
 
         try {

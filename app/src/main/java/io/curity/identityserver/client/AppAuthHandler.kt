@@ -95,7 +95,7 @@ class AppAuthHandler(val context: Context) {
                 when {
                     registrationResponse != null -> {
                         Log.i(ContentValues.TAG, "Registration data retrieved successfully")
-                        Log.d(ContentValues.TAG, registrationResponse.jsonSerializeString())
+                        Log.d(ContentValues.TAG, "ID: ${registrationResponse.clientId}, Secret: ${registrationResponse.clientSecret}")
                         continuation.resume(registrationResponse)
                     }
                     else -> {
@@ -136,19 +136,12 @@ class AppAuthHandler(val context: Context) {
         response: AuthorizationResponse?,
         ex: AuthorizationException?): AuthorizationResponse? {
 
-        if (ex != null &&
-            ex.type == AuthorizationException.TYPE_GENERAL_ERROR &&
-            ex.code == AuthorizationException.GeneralErrors.USER_CANCELED_AUTH_FLOW.code
-        ) {
-            return null
-        }
-
         if (response == null) {
             throw createAuthorizationError("Authorization Request Error", ex)
         }
 
         Log.i(ContentValues.TAG, "Authorization response received successfully")
-        Log.d(ContentValues.TAG, response.jsonSerializeString())
+        Log.d(ContentValues.TAG, "CODE: ${response.authorizationCode}, STATE: ${response.state}")
         return response
     }
 
@@ -169,7 +162,7 @@ class AppAuthHandler(val context: Context) {
                 when {
                     tokenResponse != null -> {
                         Log.i(ContentValues.TAG, "Authorization code grant response received successfully")
-                        Log.d(ContentValues.TAG, tokenResponse.jsonSerializeString())
+                        Log.d(ContentValues.TAG, "AT: ${tokenResponse.accessToken}, RT: ${tokenResponse.refreshToken}, IDT: ${tokenResponse.idToken}" )
                         continuation.resume(tokenResponse)
                     }
                     else -> {
@@ -203,7 +196,7 @@ class AppAuthHandler(val context: Context) {
                 when {
                     tokenResponse != null -> {
                         Log.i(ContentValues.TAG, "Refresh token grant response received successfully")
-                        Log.d(ContentValues.TAG, tokenResponse.jsonSerializeString())
+                        Log.d(ContentValues.TAG, "AT: ${tokenResponse.accessToken}, RT: ${tokenResponse.refreshToken}, IDT: ${tokenResponse.idToken}" )
                         continuation.resume(tokenResponse)
                     }
                     else -> {
@@ -246,9 +239,7 @@ class AppAuthHandler(val context: Context) {
     /*
      * Finalize after receiving an end session response
      */
-    fun handleEndSessionResponse(
-        response: AuthorizationResponse?,
-        ex: AuthorizationException?) {
+    fun handleEndSessionResponse(ex: AuthorizationException?) {
 
         when {
             ex != null -> {

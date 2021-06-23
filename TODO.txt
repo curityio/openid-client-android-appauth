@@ -1,29 +1,26 @@
-FEATURES
---------
-Nicer colours in line with HAAPI
-Use image from HAAPI sample
-Disable login button when cannot get metadata
-Remove errors for next operation
-DCR token with a client secret
-
-TWEAKS
-------
-setSupportActionBar
-Clean up dependencies
-
 BUGS
 ----
-Logs output registration response instead of message???
+Need to store error in parent view model and then use it in child view model
+Clear errors for next operation
 Logout only works sometimes
-ApplicationStateManager access by multiple threads to think about
 
-CODING MODEL JUSTIFICATION
---------------------------
+POLISH
+------
+Text labels for subject / access token / refresh token to strings.xml
+Better presented labels and values as for HAAPI iOS
+Use image from HAAPI sample
+
+SECURITY
+--------
+DCR token with a client secret
+
+JUSTIFICATION
+-------------
 Good mobile samples have high value in terms of customers and readers
 Mention most mainstream coding style is single activity
 Leads to simplest code - a few simple fragments
 AppAuth examples use old style navigation which makes the OAuth harder to follow
-Simpler code makes handling of errors a bit simpler
+Simpler code makes error handling easier to implement reliably
 Multiple ways to code an Android app and solution can be adapted
 
 FEEDBACK

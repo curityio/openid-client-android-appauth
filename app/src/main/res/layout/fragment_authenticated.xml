@@ -10,15 +10,6 @@
         android:orientation="vertical"
         android:gravity="center">
 
-        <androidx.fragment.app.FragmentContainerView
-            android:id="@+id/fragment_authenticated_error"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:name="io.curity.identityserver.client.views.error.ErrorFragment"
-            tools:layout="@layout/fragment_error">
-        </androidx.fragment.app.FragmentContainerView>
-
         <TextView
             android:id="@+id/hello_subject"
             android:layout_width="match_parent"
@@ -45,15 +36,11 @@
             android:text="@{model.refreshToken}"
             android:textAlignment="center" />
 
-        <View
-            android:layout_width="wrap_content"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
-
         <Button
             android:id="@+id/refreshButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
             android:text="@string/refresh_button"
             android:onClick="@{() -> model.refreshAccessToken()}"
             style="@style/ButtonStyle"/>
@@ -62,10 +49,24 @@
             android:id="@+id/logoutButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="end"
+            android:layout_marginTop="20dp"
             android:text="@string/logout_button"
             android:onClick="@{() -> model.startLogout()}"
             style="@style/ButtonStyle"/>
+
+        <View
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/fragment_authenticated_error"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:name="io.curity.identityserver.client.views.error.ErrorFragment"
+            tools:layout="@layout/fragment_error">
+        </androidx.fragment.app.FragmentContainerView>
 
     </LinearLayout>
 </layout>

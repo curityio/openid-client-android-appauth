@@ -10,6 +10,21 @@
         android:orientation="vertical"
         android:gravity="center">
 
+        <Button
+            android:id="@+id/loginButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/login_button"
+            android:onClick="@{() -> model.startLogin()}"
+            android:layout_marginTop="25dp"
+            android:enabled="@{model.isRegistered}"
+            style="@style/ButtonStyle"/>
+
+        <View
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
         <androidx.fragment.app.FragmentContainerView
             android:id="@+id/fragment_unauthenticated_error"
             android:layout_width="match_parent"
@@ -19,19 +34,5 @@
             tools:layout="@layout/fragment_error">
         </androidx.fragment.app.FragmentContainerView>
 
-        <View
-            android:layout_width="wrap_content"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
-
-        <Button
-            android:id="@+id/loginButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/login_button"
-            android:onClick="@{() -> model.startLogin()}"
-            android:layout_marginBottom="25dp"
-            android:enabled="@{model.isRegistered}"
-            style="@style/ButtonStyle"/>
     </LinearLayout>
 </layout>

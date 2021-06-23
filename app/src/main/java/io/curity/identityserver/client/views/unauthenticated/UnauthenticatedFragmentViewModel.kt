@@ -46,24 +46,23 @@ class UnauthenticatedFragmentViewModel(
 
             try {
 
-                ApplicationStateManager.serverConfiguration = appauth.fetchMetadata(ApplicationConfig.issuer)
-                if (!ApplicationStateManager.isRegistered()) {
-                    ApplicationStateManager.registrationResponse = appauth.registerClient(ApplicationStateManager.serverConfiguration)
+                if (ApplicationStateManager.serverConfiguration == null) {
+                    println("GJA metadata")
+                    ApplicationStateManager.serverConfiguration = appauth.fetchMetadata(ApplicationConfig.issuer)
+                }
+                if (ApplicationStateManager.registrationResponse == null) {
+                    println("GJA metadata")
+                    ApplicationStateManager.registrationResponse = appauth.registerClient(ApplicationStateManager.serverConfiguration!!)
                 }
 
                 withContext(Dispatchers.Main) {
-
                     isRegistered = true
                     notifyChange()
                 }
 
             } catch (ex: ApplicationException) {
-
-                println("GJA caught exception")
                 withContext(Dispatchers.Main) {
-                    println("GJA handling exception")
                     events.handleError(ex)
-                    println("GJA handled exception")
                 }
             }
         }
@@ -75,8 +74,8 @@ class UnauthenticatedFragmentViewModel(
     fun startLogin() {
 
         val intent = appauth.getAuthorizationRedirectIntent(
-            ApplicationStateManager.serverConfiguration,
-            ApplicationStateManager.registrationResponse
+            ApplicationStateManager.serverConfiguration!!,
+            ApplicationStateManager.registrationResponse!!
         )
 
         events.startLoginRedirect(intent)
@@ -99,7 +98,7 @@ class UnauthenticatedFragmentViewModel(
 
                     val tokenResponse = appauth.redeemCodeForTokens(
                         authorizationResponse,
-                        ApplicationStateManager.registrationResponse
+                        ApplicationStateManager.registrationResponse!!
                     )
 
                     withContext(Dispatchers.Main) {

@@ -16,7 +16,6 @@
 
 package io.curity.identityserver.client
 
-import io.curity.identityserver.client.errors.IllegalApplicationStateException
 import net.openid.appauth.AuthState
 import net.openid.appauth.AuthorizationServiceConfiguration
 import net.openid.appauth.RegistrationResponse
@@ -31,19 +30,17 @@ object ApplicationStateManager {
     private var authState: AuthState? = null
     var idToken: String? = null
 
-    var serverConfiguration: AuthorizationServiceConfiguration
+    var serverConfiguration: AuthorizationServiceConfiguration?
         get () {
             return authState?.authorizationServiceConfiguration
-                ?: throw IllegalApplicationStateException("Configuration not set in authState")
         }
         set (configuration) {
-            authState = AuthState(configuration)
+            authState = AuthState(configuration!!)
         }
 
-    var registrationResponse: RegistrationResponse
+    var registrationResponse: RegistrationResponse?
         get () {
             return authState?.lastRegistrationResponse
-                ?: throw IllegalApplicationStateException("Client not registered in authState")
         }
         set (registrationResponse) {
             authState?.update(registrationResponse)
@@ -56,7 +53,7 @@ object ApplicationStateManager {
         set (tokenResponse) {
 
             val oldAuthState = authState
-            authState = AuthState(serverConfiguration)
+            authState = AuthState(serverConfiguration!!)
             if (oldAuthState != null) {
                 authState!!.update(oldAuthState.lastRegistrationResponse)
             }
@@ -71,8 +68,4 @@ object ApplicationStateManager {
                 authState!!.update(tokenResponse, null)
             }
         }
-
-    fun isRegistered(): Boolean {
-        return authState?.lastRegistrationResponse != null
-    }
 }
