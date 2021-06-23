@@ -125,7 +125,7 @@ class AuthenticatedFragmentViewModel(
         try {
             return jwtConsumer.processToClaims(idToken)
         } catch (e: InvalidJwtException) {
-            throw InvalidIdTokenException(e.message ?: "Failed to parse id token")
+            throw InvalidIdTokenException(e.message ?: "Failed to Parse ID Token")
         }
     }
 }

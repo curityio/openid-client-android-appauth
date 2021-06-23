@@ -34,7 +34,7 @@ object ApplicationStateManager {
     var serverConfiguration: AuthorizationServiceConfiguration
         get () {
             return authState?.authorizationServiceConfiguration
-                ?: throw IllegalApplicationStateException("Configuration not set")
+                ?: throw IllegalApplicationStateException("Configuration not set in authState")
         }
         set (configuration) {
             authState = AuthState(configuration)
@@ -43,7 +43,7 @@ object ApplicationStateManager {
     var registrationResponse: RegistrationResponse
         get () {
             return authState?.lastRegistrationResponse
-                ?: throw IllegalApplicationStateException("Not registered")
+                ?: throw IllegalApplicationStateException("Client not registered in authState")
         }
         set (registrationResponse) {
             authState?.update(registrationResponse)

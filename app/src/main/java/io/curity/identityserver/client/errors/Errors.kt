@@ -19,13 +19,14 @@ package io.curity.identityserver.client.errors
 const val GENERIC_ERROR = "Unknown Error"
 
 open class ApplicationException(val errorTitle: String,
-                                val errorDescription: String?) : RuntimeException()
+                                val errorDescription: String?,
+                                val errorCode: String? = null) : RuntimeException()
 
-class ServerCommunicationException(errorTitle: String, errorDescription: String?) :
-    ApplicationException(errorTitle, errorDescription)
+class ServerCommunicationException(errorTitle: String, errorDescription: String?, errorCode: String?) :
+    ApplicationException(errorTitle, errorDescription, errorCode)
 
 class IllegalApplicationStateException(errorDescription: String) :
-    ApplicationException("Invalid application state", errorDescription)
+    ApplicationException("Invalid Application State", errorDescription)
 
 class InvalidIdTokenException(errorDescription: String) :
     ApplicationException("Invalid ID Token", errorDescription)

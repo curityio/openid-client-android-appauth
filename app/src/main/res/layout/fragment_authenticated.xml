@@ -13,6 +13,7 @@
             android:id="@+id/hello_subject"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
             android:text="@{model.subject}"
             android:textAlignment="center"
             android:textSize="24sp"
@@ -22,7 +23,7 @@
             android:id="@+id/access_token"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
+            android:layout_marginTop="20dp"
             android:text="@{model.accessToken}"
             android:textAlignment="center" />
 
@@ -30,7 +31,7 @@
             android:id="@+id/refresh_token"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
+            android:layout_marginTop="20dp"
             android:text="@{model.refreshToken}"
             android:textAlignment="center" />
 

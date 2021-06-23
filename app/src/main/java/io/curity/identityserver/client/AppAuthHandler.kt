@@ -51,8 +51,8 @@ class AppAuthHandler(val context: Context) {
                     config != null -> {
                         if (config.registrationEndpoint == null) {
                             val error = ApplicationException(
-                                "fetchFromIssuer",
-                                "Server discovery doc did not contain a registration endpoint"
+                                "Invalid Configuration Error",
+                                "No registration endpoint is configured in the Identity Server"
                             )
                             continuation.resumeWithException(error)
                         }
@@ -144,7 +144,7 @@ class AppAuthHandler(val context: Context) {
         }
 
         if (response == null) {
-            throw createAuthorizationError("Authorization request failed", ex)
+            throw createAuthorizationError("Authorization Request Error", ex)
         }
 
         Log.i(ContentValues.TAG, "Authorization response received successfully")
@@ -173,7 +173,7 @@ class AppAuthHandler(val context: Context) {
                         continuation.resume(tokenResponse)
                     }
                     else -> {
-                        val error = createAuthorizationError("Authorization code grant request failed", ex)
+                        val error = createAuthorizationError("Authorization Response Error", ex)
                         continuation.resumeWithException(error)
                     }
                 }
@@ -192,7 +192,7 @@ class AppAuthHandler(val context: Context) {
         return suspendCoroutine { continuation ->
 
             val extraParams = mapOf("client_secret" to registrationResponse.clientSecret)
-            val tokenRequest = TokenRequest.Builder(serverConfiguration, registrationResponse.clientId)
+            val tokenRequest = TokenRequest.Builder(serverConfiguration, registrationResponse.clientId + "X")
                 .setGrantType(GrantTypeValues.REFRESH_TOKEN)
                 .setRefreshToken(refreshToken)
                 .setAdditionalParameters(extraParams)
@@ -216,7 +216,7 @@ class AppAuthHandler(val context: Context) {
 
                         } else {
 
-                            val error = createAuthorizationError("refreshAccessToken failed", ex)
+                            val error = createAuthorizationError("Token Refresh Error", ex)
                             continuation.resumeWithException(error)
                         }
                     }
@@ -252,7 +252,7 @@ class AppAuthHandler(val context: Context) {
 
         when {
             ex != null -> {
-                throw createAuthorizationError("End session request failed", ex)
+                throw createAuthorizationError("End Session Request Error", ex)
             }
         }
     }
@@ -262,13 +262,19 @@ class AppAuthHandler(val context: Context) {
      */
     private fun createAuthorizationError(title: String, ex: AuthorizationException?): ServerCommunicationException {
 
-        val description: String = if (ex?.error != null) {
-            "Code: ${ex.error}, Description: ${ex.errorDescription ?: GENERIC_ERROR}}"
+        val code: String = if (ex?.error != null) {
+            ex.error!!
         } else {
             GENERIC_ERROR
         }
 
-        Log.e(ContentValues.TAG, "$title : $description")
-        return ServerCommunicationException(title, description)
+        val description: String = if (ex?.error != null) {
+            ex.errorDescription ?: GENERIC_ERROR
+        } else {
+            GENERIC_ERROR
+        }
+
+        Log.e(ContentValues.TAG, "$title, $code, $description")
+        return ServerCommunicationException(title, description, code)
     }
 }
