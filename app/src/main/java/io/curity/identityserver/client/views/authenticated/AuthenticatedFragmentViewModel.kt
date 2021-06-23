@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package io.curity.identityserver.client.views;
+package io.curity.identityserver.client.views.authenticated;
 
 import android.content.Intent
 import androidx.databinding.BaseObservable
@@ -38,24 +38,20 @@ class AuthenticatedFragmentViewModel(
     private val events: AuthenticatedFragmentEvents,
     private val appauth: AppAuthHandler) : BaseObservable() {
 
-    var subject = ""
-    var authenticationDescription = ""
+    var subject: String? = null
+    var accessToken: String? = null
+    var refreshToken: String? = null
 
     fun processTokens() {
 
-        val idToken = ApplicationStateManager.tokenResponse?.idToken ?: return
+        val idToken = ApplicationStateManager.idToken ?: return
 
         try {
             val jwtClaims = readIdTokenClaims(idToken)
-
-            val greeting = events.getString(R.string.authenticated_greeting)
-            val descriptionPart1 = events.getString(R.string.authn_description1)
-            val descriptionPart2 = events.getString(R.string.authn_description2)
-            val time = jwtClaims.getNumericDateClaimValue("auth_time")
-            val acr = jwtClaims.getClaimValueAsString("acr")
-
-            subject = "$greeting ${jwtClaims.subject}"
-            authenticationDescription = "$descriptionPart1 $time $descriptionPart2 $acr"
+            subject = "Hello ${jwtClaims.subject}"
+            accessToken = "Access Token: ${ApplicationStateManager.tokenResponse?.accessToken}"
+            refreshToken = "Refresh Token: ${ApplicationStateManager.tokenResponse?.refreshToken}"
+            notifyChange()
 
         } catch(ex: ApplicationException) {
             events.handleError(ex)
@@ -68,10 +64,9 @@ class AuthenticatedFragmentViewModel(
 
         CoroutineScope(Dispatchers.IO).launch {
 
-            val model = this@AuthenticatedFragmentViewModel
             try {
 
-                val response = model.appauth.refreshAccessToken(
+                val response = this@AuthenticatedFragmentViewModel.appauth.refreshAccessToken(
                     refreshToken,
                     ApplicationStateManager.serverConfiguration,
                     ApplicationStateManager.registrationResponse
@@ -79,12 +74,13 @@ class AuthenticatedFragmentViewModel(
 
                 withContext(Dispatchers.Main) {
                     ApplicationStateManager.tokenResponse = response
+                    processTokens()
                 }
 
             } catch (ex: ApplicationException) {
 
                 withContext(Dispatchers.Main) {
-                    model.events.handleError(ex)
+                    events.handleError(ex)
                 }
             }
         }
@@ -95,7 +91,7 @@ class AuthenticatedFragmentViewModel(
         val intent = appauth.getEndSessionRedirectIntent(
             ApplicationStateManager.serverConfiguration,
             ApplicationStateManager.registrationResponse,
-            ApplicationStateManager.tokenResponse?.idToken,
+            ApplicationStateManager.idToken,
             ApplicationConfig.postLogoutRedirectUri)
 
         events.startLogoutRedirect(intent)

@@ -24,6 +24,7 @@ import androidx.navigation.fragment.NavHostFragment
 import io.curity.identityserver.client.R
 import io.curity.identityserver.client.databinding.ActivityMainBinding
 import io.curity.identityserver.client.errors.ApplicationException
+import io.curity.identityserver.client.views.error.ErrorFragment
 import kotlinx.android.synthetic.main.activity_main.toolbar
 
 class MainActivity : AppCompatActivity() {

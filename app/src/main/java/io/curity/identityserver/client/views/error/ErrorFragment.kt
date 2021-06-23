@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package io.curity.identityserver.client.views
+package io.curity.identityserver.client.views.error
 
 import android.os.Bundle
 import android.view.LayoutInflater

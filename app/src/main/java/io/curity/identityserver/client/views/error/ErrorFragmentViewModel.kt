@@ -14,18 +14,20 @@
  *  limitations under the License.
  */
 
-package io.curity.identityserver.client.views
+package io.curity.identityserver.client.views.error
 
-import android.content.Intent
+import androidx.databinding.BaseObservable
 import io.curity.identityserver.client.errors.ApplicationException
+import io.curity.identityserver.client.errors.GENERIC_ERROR
 
-interface AuthenticatedFragmentEvents {
+class ErrorFragmentViewModel : BaseObservable() {
 
-    fun getString(id: Int): String
+    var title = ""
+    var description = ""
 
-    fun startLogoutRedirect(intent: Intent)
-
-    fun onLogoutSuccess()
-
-    fun handleError(ex: ApplicationException)
+    fun setErrorDetails(ex: ApplicationException) {
+        this.title = ex.errorTitle
+        this.description = ex.errorDescription ?: GENERIC_ERROR
+        this.notifyChange()
+    }
 }

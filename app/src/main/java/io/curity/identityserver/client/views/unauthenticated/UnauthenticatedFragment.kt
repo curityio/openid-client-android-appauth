@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package io.curity.identityserver.client.views
+package io.curity.identityserver.client.views.unauthenticated
 
 import android.app.Activity
 import android.content.Intent
@@ -26,6 +26,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.activityViewModels
 import io.curity.identityserver.client.databinding.FragmentUnauthenticatedBinding
 import io.curity.identityserver.client.errors.ApplicationException
+import io.curity.identityserver.client.views.MainActivity
+import io.curity.identityserver.client.views.MainActivityViewModel
 
 class UnauthenticatedFragment : androidx.fragment.app.Fragment(), UnauthenticatedFragmentEvents {
 

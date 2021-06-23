@@ -29,40 +29,46 @@ import net.openid.appauth.TokenResponse
 object ApplicationStateManager {
 
     private var authState: AuthState? = null
+    var idToken: String? = null
 
     var serverConfiguration: AuthorizationServiceConfiguration
-        get() {
+        get () {
             return authState?.authorizationServiceConfiguration
                 ?: throw IllegalApplicationStateException("Configuration not set")
         }
-        set(configuration) {
+        set (configuration) {
             authState = AuthState(configuration)
         }
 
     var registrationResponse: RegistrationResponse
-        get() {
+        get () {
             return authState?.lastRegistrationResponse
                 ?: throw IllegalApplicationStateException("Not registered")
         }
-        set(registrationResponse) {
+        set (registrationResponse) {
             authState?.update(registrationResponse)
         }
 
     var tokenResponse: TokenResponse?
-        get() {
+        get () {
             return authState?.lastTokenResponse
         }
-        set(tokenResponse) {
+        set (tokenResponse) {
 
-            if (tokenResponse != null) {
-                authState?.update(tokenResponse, null)
+            val oldAuthState = authState
+            authState = AuthState(serverConfiguration)
+            if (oldAuthState != null) {
+                authState!!.update(oldAuthState.lastRegistrationResponse)
+            }
+
+            if (tokenResponse?.idToken != null) {
+                idToken = tokenResponse.idToken
+            }
+
+            if (tokenResponse == null) {
+                idToken = null
             } else {
-
-                val oldAuthState = authState
-                if (oldAuthState != null) {
-                    authState = AuthState(oldAuthState.authorizationServiceConfiguration!!)
-                    authState!!.update(oldAuthState.lastRegistrationResponse)
-                }
+                authState!!.update(tokenResponse, null)
             }
         }
 

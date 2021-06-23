@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android">
     <data>
-        <variable name="model" type="io.curity.identityserver.client.views.AuthenticatedFragmentViewModel" />
+        <variable name="model" type="io.curity.identityserver.client.views.authenticated.AuthenticatedFragmentViewModel" />
     </data>
     <LinearLayout
         android:layout_width="match_parent"
@@ -19,11 +19,19 @@
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/authn_description"
+            android:id="@+id/access_token"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="32dp"
-            android:text="@{model.authenticationDescription}"
+            android:text="@{model.accessToken}"
+            android:textAlignment="center" />
+
+        <TextView
+            android:id="@+id/refresh_token"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:text="@{model.refreshToken}"
             android:textAlignment="center" />
 
         <View
@@ -31,27 +39,22 @@
             android:layout_height="0dp"
             android:layout_weight="1" />
 
-        <com.google.android.material.bottomnavigation.BottomNavigationView
+        <Button
+            android:id="@+id/refreshButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="5dp"
-            android:layout_marginEnd="5dp">
+            android:text="@string/refresh_button"
+            android:onClick="@{() -> model.refreshAccessToken()}"
+            style="@style/ButtonStyle"/>
 
-            <Button
-                android:id="@+id/refreshButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/refresh_button"
-                android:onClick="@{() -> model.refreshAccessToken()}"/>
-
-            <Button
-                android:id="@+id/logoutButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="end"
-                android:text="@string/logout_button"
-                android:onClick="@{() -> model.startLogout()}"/>
-        </com.google.android.material.bottomnavigation.BottomNavigationView>
+        <Button
+            android:id="@+id/logoutButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:text="@string/logout_button"
+            android:onClick="@{() -> model.startLogout()}"
+            style="@style/ButtonStyle"/>
 
     </LinearLayout>
 </layout>

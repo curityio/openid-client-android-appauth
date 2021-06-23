@@ -1,27 +1,30 @@
+FEATURES
+--------
+Nicer colours in line with HAAPI
+Use image from HAAPI sample and padding at bottom
+Update ServerCommunication error to include code + description fields
+Disable buttons when cannot get metadata etc
+Mention how to get a DCR token and use a client secret
+
 TWEAKS
 ------
-ApplicationStateManager updates on any thread to simplify code
 setSupportActionBar
 Clean up dependencies
-Fix warnings
 
 BUGS
 ----
 Logs output registration response instead of message???
 Logout only works sometimes
+ApplicationStateManager access by multiple threads to think about
 
-FEATURES
---------
-Show access and refresh tokens
-Bigger buttons in line with HAAPI
-Nicer colours in line with HAAPI
-Mention how to get a DCR token and use a client secret
-
-CODING MODEL
-------------
-Brief doc to describe this
+CODING MODEL JUSTIFICATION
+--------------------------
+Good mobile samples have high value in terms of customers and readers
 Mention most mainstream coding style is single activity
-Mention multiple ways to code an Android app and solution can be adapted - eg official samples transfer between activities
+Leads to simplest code - a few simple fragments
+AppAuth examples use old style navigation which makes the OAuth harder to follow
+Simpler code makes handling of errors a bit simpler
+Multiple ways to code an Android app and solution can be adapted
 
 ARTICLE POINTS
 --------------

@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package io.curity.identityserver.client.views
+package io.curity.identityserver.client.views.authenticated
 
 import android.app.Activity
 import android.content.Intent
@@ -26,6 +26,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.activityViewModels
 import io.curity.identityserver.client.databinding.FragmentAuthenticatedBinding
 import io.curity.identityserver.client.errors.ApplicationException
+import io.curity.identityserver.client.views.MainActivity
+import io.curity.identityserver.client.views.MainActivityViewModel
 
 class AuthenticatedFragment : androidx.fragment.app.Fragment(), AuthenticatedFragmentEvents {
 
@@ -60,13 +62,11 @@ class AuthenticatedFragment : androidx.fragment.app.Fragment(), AuthenticatedFra
     }
 
     override fun onLogoutSuccess() {
-
         val mainActivity = this.activity as MainActivity
         mainActivity.postLogoutNavigate()
     }
 
     override fun handleError(ex: ApplicationException) {
-
         val mainActivity = this.activity as MainActivity
         mainActivity.handleError(ex)
     }

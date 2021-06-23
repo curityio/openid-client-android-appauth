@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package io.curity.identityserver.client.views;
+package io.curity.identityserver.client.views.unauthenticated;
 
 import android.content.Intent
 import androidx.databinding.BaseObservable
@@ -96,10 +96,8 @@ class UnauthenticatedFragmentViewModel(
                     )
 
                     withContext(Dispatchers.Main) {
-                        if (tokenResponse != null) {
-                            ApplicationStateManager.tokenResponse = tokenResponse
-                            events.onLoginSuccess()
-                        }
+                        ApplicationStateManager.tokenResponse = tokenResponse
+                        events.onLoginSuccess()
                     }
                 }
 

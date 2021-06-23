@@ -7,12 +7,12 @@
 
     <fragment
         android:id="@+id/fragment_unauthenticated"
-        android:name="io.curity.identityserver.client.views.UnauthenticatedFragment"
+        android:name="io.curity.identityserver.client.views.unauthenticated.UnauthenticatedFragment"
         tools:layout="@layout/fragment_unauthenticated">
     </fragment>
     <fragment
         android:id="@+id/fragment_authenticated"
-        android:name="io.curity.identityserver.client.views.AuthenticatedFragment"
+        android:name="io.curity.identityserver.client.views.authenticated.AuthenticatedFragment"
         tools:layout="@layout/fragment_authenticated">
     </fragment>
 </navigation>

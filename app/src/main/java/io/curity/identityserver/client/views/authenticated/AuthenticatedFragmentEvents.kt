@@ -14,16 +14,18 @@
  *  limitations under the License.
  */
 
-package io.curity.identityserver.client.views
+package io.curity.identityserver.client.views.authenticated
 
 import android.content.Intent
 import io.curity.identityserver.client.errors.ApplicationException
 
-interface UnauthenticatedFragmentEvents {
+interface AuthenticatedFragmentEvents {
 
-    fun startLoginRedirect(intent: Intent)
+    fun getString(id: Int): String
 
-    fun onLoginSuccess()
+    fun startLogoutRedirect(intent: Intent)
+
+    fun onLogoutSuccess()
 
     fun handleError(ex: ApplicationException)
 }

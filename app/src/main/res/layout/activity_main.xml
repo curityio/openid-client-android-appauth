@@ -24,16 +24,16 @@
 
         </com.google.android.material.appbar.AppBarLayout>
 
-        <fragment
+        <androidx.fragment.app.FragmentContainerView
             android:id="@+id/fragment_error"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:name="io.curity.identityserver.client.views.ErrorFragment"
+            android:name="io.curity.identityserver.client.views.error.ErrorFragment"
             tools:layout="@layout/fragment_error">
-        </fragment>
+        </androidx.fragment.app.FragmentContainerView>
 
-        <fragment
+        <androidx.fragment.app.FragmentContainerView
             android:id="@+id/nav_host_fragment"
             android:name="androidx.navigation.fragment.NavHostFragment"
             android:layout_width="match_parent"

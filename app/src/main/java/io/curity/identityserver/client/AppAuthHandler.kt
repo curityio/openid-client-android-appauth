@@ -78,9 +78,9 @@ class AppAuthHandler(val context: Context) {
         return suspendCoroutine { continuation ->
 
             val extraParams = mutableMapOf<String, String>()
-            extraParams.put("scope", ApplicationConfig.scope)
-            extraParams.put("requires_consent", "false")
-            extraParams.put("post_logout_redirect_uris", ApplicationConfig.postLogoutRedirectUri.toString())
+            extraParams["scope"] = ApplicationConfig.scope
+            extraParams["requires_consent"] = "false"
+            extraParams["post_logout_redirect_uris"] = ApplicationConfig.postLogoutRedirectUri.toString()
 
             val nonTemplatizedRequest =
                 RegistrationRequest.Builder(
@@ -138,7 +138,7 @@ class AppAuthHandler(val context: Context) {
 
         if (ex != null &&
             ex.type == AuthorizationException.TYPE_GENERAL_ERROR &&
-            ex.code.equals(AuthorizationException.GeneralErrors.USER_CANCELED_AUTH_FLOW.code)
+            ex.code == AuthorizationException.GeneralErrors.USER_CANCELED_AUTH_FLOW.code
         ) {
             return null
         }
@@ -210,7 +210,8 @@ class AppAuthHandler(val context: Context) {
 
                         if (ex != null &&
                             ex.type == AuthorizationException.TYPE_OAUTH_TOKEN_ERROR &&
-                            ex.code.equals(AuthorizationException.TokenRequestErrors.INVALID_GRANT.code)) {
+                            ex.code == AuthorizationException.TokenRequestErrors.INVALID_GRANT.code
+                        ) {
                             continuation.resume(null)
 
                         } else {
@@ -261,12 +262,10 @@ class AppAuthHandler(val context: Context) {
      */
     private fun createAuthorizationError(title: String, ex: AuthorizationException?): ServerCommunicationException {
 
-        var description = ""
-
-        if (ex?.error != null) {
-            description = "Code: ${ex.error}, Description: ${ex.errorDescription ?: GENERIC_ERROR}}"
+        val description: String = if (ex?.error != null) {
+            "Code: ${ex.error}, Description: ${ex.errorDescription ?: GENERIC_ERROR}}"
         } else {
-            description = GENERIC_ERROR
+            GENERIC_ERROR
         }
 
         Log.e(ContentValues.TAG, "$title : $description")

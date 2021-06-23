@@ -14,20 +14,16 @@
  *  limitations under the License.
  */
 
-package io.curity.identityserver.client.views
+package io.curity.identityserver.client.views.unauthenticated
 
-import androidx.databinding.BaseObservable
+import android.content.Intent
 import io.curity.identityserver.client.errors.ApplicationException
-import io.curity.identityserver.client.errors.GENERIC_ERROR
 
-class ErrorFragmentViewModel : BaseObservable() {
+interface UnauthenticatedFragmentEvents {
 
-    var title = ""
-    var description = ""
+    fun startLoginRedirect(intent: Intent)
 
-    fun setErrorDetails(ex: ApplicationException) {
-        this.title = ex.errorTitle
-        this.description = ex.errorDescription ?: GENERIC_ERROR
-        this.notifyChange()
-    }
+    fun onLoginSuccess()
+
+    fun handleError(ex: ApplicationException)
 }
