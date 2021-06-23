@@ -20,8 +20,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.viewModels
 import io.curity.identityserver.client.databinding.FragmentErrorBinding
-import io.curity.identityserver.client.errors.ApplicationException
 
 class ErrorFragment : androidx.fragment.app.Fragment() {
 
@@ -33,12 +33,12 @@ class ErrorFragment : androidx.fragment.app.Fragment() {
         savedInstanceState: Bundle?
     ): View {
 
-        this.binding = FragmentErrorBinding.inflate(inflater, container, false)
-        this.binding.model = ErrorFragmentViewModel()
-        return this.binding.root
-    }
+        val viewModel: ErrorFragmentViewModel by viewModels(
+            ownerProducer = { requireParentFragment() }
+        )
 
-    fun reportError(ex: ApplicationException) {
-        this.binding.model!!.setErrorDetails(ex)
+        this.binding = FragmentErrorBinding.inflate(inflater, container, false)
+        this.binding.model = viewModel
+        return this.binding.root
     }
 }

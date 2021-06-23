@@ -22,17 +22,18 @@ import io.curity.identityserver.client.AppAuthHandler
 import io.curity.identityserver.client.ApplicationStateManager
 import io.curity.identityserver.client.configuration.ApplicationConfig
 import io.curity.identityserver.client.errors.ApplicationException
+import io.curity.identityserver.client.views.error.ErrorFragmentViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.openid.appauth.AuthorizationException
 import net.openid.appauth.AuthorizationResponse
-import net.openid.appauth.RegistrationResponse
 
 class UnauthenticatedFragmentViewModel(
     private val events: UnauthenticatedFragmentEvents,
-    private val appauth: AppAuthHandler) : BaseObservable() {
+    private val appauth: AppAuthHandler,
+    private val error: ErrorFragmentViewModel) : BaseObservable() {
 
     var isRegistered = false
 
@@ -47,11 +48,9 @@ class UnauthenticatedFragmentViewModel(
             try {
 
                 if (ApplicationStateManager.serverConfiguration == null) {
-                    println("GJA metadata")
                     ApplicationStateManager.serverConfiguration = appauth.fetchMetadata(ApplicationConfig.issuer)
                 }
                 if (ApplicationStateManager.registrationResponse == null) {
-                    println("GJA metadata")
                     ApplicationStateManager.registrationResponse = appauth.registerClient(ApplicationStateManager.serverConfiguration!!)
                 }
 
@@ -61,8 +60,9 @@ class UnauthenticatedFragmentViewModel(
                 }
 
             } catch (ex: ApplicationException) {
+
                 withContext(Dispatchers.Main) {
-                    events.handleError(ex)
+                    error.setErrorDetails(ex)
                 }
             }
         }
@@ -103,14 +103,14 @@ class UnauthenticatedFragmentViewModel(
 
                     withContext(Dispatchers.Main) {
                         ApplicationStateManager.tokenResponse = tokenResponse
-                        events.onLoginSuccess()
+                        events.onAuthenticated()
                     }
                 }
 
             } catch (ex: ApplicationException) {
 
                 withContext(Dispatchers.Main) {
-                    events.handleError(ex)
+                    error.setErrorDetails(ex)
                 }
             }
         }

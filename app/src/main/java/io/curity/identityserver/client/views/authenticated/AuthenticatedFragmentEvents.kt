@@ -17,7 +17,6 @@
 package io.curity.identityserver.client.views.authenticated
 
 import android.content.Intent
-import io.curity.identityserver.client.errors.ApplicationException
 
 interface AuthenticatedFragmentEvents {
 
@@ -25,7 +24,5 @@ interface AuthenticatedFragmentEvents {
 
     fun startLogoutRedirect(intent: Intent)
 
-    fun onLogoutSuccess()
-
-    fun handleError(ex: ApplicationException)
+    fun onEndSession()
 }

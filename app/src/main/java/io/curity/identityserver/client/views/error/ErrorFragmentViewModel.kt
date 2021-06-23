@@ -16,18 +16,29 @@
 
 package io.curity.identityserver.client.views.error
 
-import androidx.databinding.BaseObservable
+import androidx.databinding.Observable
+import androidx.databinding.PropertyChangeRegistry
+import androidx.lifecycle.ViewModel
 import io.curity.identityserver.client.errors.ApplicationException
 import io.curity.identityserver.client.errors.GENERIC_ERROR
 
-class ErrorFragmentViewModel : BaseObservable() {
+class ErrorFragmentViewModel : ViewModel(), Observable {
 
     var title = ""
     var description = ""
+    private val callbacks = PropertyChangeRegistry()
 
     fun setErrorDetails(ex: ApplicationException) {
         this.title = ex.errorTitle
         this.description = ex.errorDescription ?: GENERIC_ERROR
-        this.notifyChange()
+        callbacks.notifyCallbacks(this, 0, null)
+    }
+
+    override fun addOnPropertyChangedCallback(callback: Observable.OnPropertyChangedCallback?) {
+        callbacks.add(callback)
+    }
+
+    override fun removeOnPropertyChangedCallback(callback: Observable.OnPropertyChangedCallback?) {
+        callbacks.remove(callback)
     }
 }

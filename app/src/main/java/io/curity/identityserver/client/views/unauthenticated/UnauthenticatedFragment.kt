@@ -24,12 +24,11 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.activityViewModels
-import io.curity.identityserver.client.R
+import androidx.fragment.app.viewModels
 import io.curity.identityserver.client.databinding.FragmentUnauthenticatedBinding
-import io.curity.identityserver.client.errors.ApplicationException
 import io.curity.identityserver.client.views.MainActivity
 import io.curity.identityserver.client.views.MainActivityViewModel
-import io.curity.identityserver.client.views.error.ErrorFragment
+import io.curity.identityserver.client.views.error.ErrorFragmentViewModel
 
 class UnauthenticatedFragment : androidx.fragment.app.Fragment(), UnauthenticatedFragmentEvents {
 
@@ -48,9 +47,10 @@ class UnauthenticatedFragment : androidx.fragment.app.Fragment(), Unauthenticate
     ): View {
 
         val mainViewModel: MainActivityViewModel by activityViewModels()
+        val errorViewModel: ErrorFragmentViewModel by viewModels()
 
         this.binding = FragmentUnauthenticatedBinding.inflate(inflater, container, false)
-        this.binding.model = UnauthenticatedFragmentViewModel(this, mainViewModel.appauth)
+        this.binding.model = UnauthenticatedFragmentViewModel(this, mainViewModel.appauth, errorViewModel)
         return this.binding.root
     }
 
@@ -63,13 +63,8 @@ class UnauthenticatedFragment : androidx.fragment.app.Fragment(), Unauthenticate
         loginLauncher.launch(intent)
     }
 
-    override fun onLoginSuccess() {
+    override fun onAuthenticated() {
         val mainActivity = this.activity as MainActivity
-        mainActivity.postLoginNavigate()
-    }
-
-    override fun handleError(ex: ApplicationException) {
-        val errorFragment = this.childFragmentManager.findFragmentById(R.id.fragment_unauthenticated_error) as ErrorFragment
-        errorFragment.reportError(ex)
+        mainActivity.onAuthenticatedNavigate()
     }
 }

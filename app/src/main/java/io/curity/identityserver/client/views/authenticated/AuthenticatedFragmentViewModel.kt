@@ -16,26 +16,29 @@
 
 package io.curity.identityserver.client.views.authenticated;
 
+import android.content.ContentValues
 import android.content.Intent
+import android.util.Log
 import androidx.databinding.BaseObservable
 import io.curity.identityserver.client.AppAuthHandler
 import io.curity.identityserver.client.ApplicationStateManager
 import io.curity.identityserver.client.configuration.ApplicationConfig
 import io.curity.identityserver.client.errors.ApplicationException
 import io.curity.identityserver.client.errors.InvalidIdTokenException
+import io.curity.identityserver.client.views.error.ErrorFragmentViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.openid.appauth.AuthorizationException
-import net.openid.appauth.AuthorizationResponse
 import org.jose4j.jwt.JwtClaims
 import org.jose4j.jwt.consumer.InvalidJwtException
 import org.jose4j.jwt.consumer.JwtConsumerBuilder
 
 class AuthenticatedFragmentViewModel(
     private val events: AuthenticatedFragmentEvents,
-    private val appauth: AppAuthHandler) : BaseObservable() {
+    private val appauth: AppAuthHandler,
+    private val error: ErrorFragmentViewModel) : BaseObservable() {
 
     var subject: String? = null
     var accessToken: String? = null
@@ -46,16 +49,14 @@ class AuthenticatedFragmentViewModel(
         val idToken = ApplicationStateManager.idToken ?: return
 
         try {
-            // val jwtClaims = readIdTokenClaims("X" + idToken + "X")
             val jwtClaims = readIdTokenClaims(idToken)
-
             subject = "Subject: ${jwtClaims.subject}"
             accessToken = "Access Token: ${ApplicationStateManager.tokenResponse?.accessToken}"
             refreshToken = "Refresh Token: ${ApplicationStateManager.tokenResponse?.refreshToken}"
             notifyChange()
 
         } catch(ex: ApplicationException) {
-            events.handleError(ex)
+            error.setErrorDetails(ex)
         }
     }
 
@@ -75,13 +76,16 @@ class AuthenticatedFragmentViewModel(
 
                 withContext(Dispatchers.Main) {
                     ApplicationStateManager.tokenResponse = response
+                    if (response == null) {
+                        events.onEndSession()
+                    }
                     processTokens()
                 }
 
             } catch (ex: ApplicationException) {
 
                 withContext(Dispatchers.Main) {
-                    events.handleError(ex)
+                    error.setErrorDetails(ex)
                 }
             }
         }
@@ -103,10 +107,10 @@ class AuthenticatedFragmentViewModel(
         try {
             appauth.handleEndSessionResponse(AuthorizationException.fromIntent(data))
             ApplicationStateManager.tokenResponse = null
-            events.onLogoutSuccess()
+            events.onEndSession()
 
         } catch (ex: ApplicationException) {
-            events.handleError(ex)
+            error.setErrorDetails(ex)
         }
     }
 
@@ -123,7 +127,8 @@ class AuthenticatedFragmentViewModel(
         try {
             return jwtConsumer.processToClaims(idToken)
         } catch (e: InvalidJwtException) {
-            throw InvalidIdTokenException(e.message ?: "Failed to Parse ID Token")
+            Log.e(ContentValues.TAG, "${e.message}")
+            throw InvalidIdTokenException("Failed to parse ID Token")
         }
     }
 }

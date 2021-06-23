@@ -23,7 +23,6 @@ import androidx.databinding.DataBindingUtil
 import androidx.navigation.fragment.NavHostFragment
 import io.curity.identityserver.client.R
 import io.curity.identityserver.client.databinding.ActivityMainBinding
-//import kotlinx.android.synthetic.main.activity_main.toolbar
 
 class MainActivity : AppCompatActivity() {
 
@@ -40,12 +39,12 @@ class MainActivity : AppCompatActivity() {
         this.binding.model = model
     }
 
-    fun postLoginNavigate() {
+    fun onAuthenticatedNavigate() {
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         navHostFragment.navController.navigate(R.id.fragment_authenticated)
     }
 
-    fun postLogoutNavigate() {
+    fun onEndSessionNavigate() {
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         navHostFragment.navController.navigate(R.id.fragment_unauthenticated)
     }

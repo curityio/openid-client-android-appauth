@@ -17,13 +17,10 @@
 package io.curity.identityserver.client.views.unauthenticated
 
 import android.content.Intent
-import io.curity.identityserver.client.errors.ApplicationException
 
 interface UnauthenticatedFragmentEvents {
 
     fun startLoginRedirect(intent: Intent)
 
-    fun onLoginSuccess()
-
-    fun handleError(ex: ApplicationException)
+    fun onAuthenticated()
 }
