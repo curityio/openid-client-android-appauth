@@ -1,14 +1,15 @@
 ISSUES
 ------
-Logout only works intermittently - see if disposing custom tab makes a difference
 Errors higher up as suggested from Urban
 UI refinements as suggested by Urban
+
+Logout only works intermittently - understand this better and compare to Cognito
+Use my custom Cognito logout code
 
 TESTING
 -------
 Run on device
 Run on old emulator
-Run against Cognito?
 
 FINALIZING
 ----------
