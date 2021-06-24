@@ -10,13 +10,29 @@
         android:orientation="vertical"
         android:gravity="center">
 
+        <TextView
+            android:id="@+id/welcome_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="@string/welcome_text"
+            android:textAlignment="center"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:src="@drawable/start_illustration"
+            android:layout_marginTop="20dp" />
+
         <Button
             android:id="@+id/loginButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/login_button"
             android:onClick="@{() -> model.startLogin()}"
-            android:layout_marginTop="25dp"
+            android:layout_marginTop="20dp"
             android:enabled="@{model.isRegistered}"
             style="@style/ButtonStyle"/>
 

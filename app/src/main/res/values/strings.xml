@@ -1,7 +1,10 @@
 <resources>
-    <string name="app_name">Curity OpenID Connect Client</string>
-    <string name="authenticated_greeting">Hello</string>
-    <string name="login_button">Authenticate</string>
+    <string name="app_name">Curity AppAuth Demo App</string>
+    <string name="welcome_text">Welcome to the Curity Android AppAuth demo app</string>
+    <string name="login_button">Start Authentication</string>
+    <string name="subject">Subject</string>
+    <string name="access_token">Access Token</string>
+    <string name="refresh_token">Refresh Token</string>
     <string name="refresh_button">Refresh Access Token</string>
     <string name="logout_button">Sign Out</string>
 </resources>

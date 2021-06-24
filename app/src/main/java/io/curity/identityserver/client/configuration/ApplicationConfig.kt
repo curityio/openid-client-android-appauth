@@ -22,7 +22,7 @@ import android.net.Uri
  * The fixed OAuth configuration that is sent in a dynamic client registration request
  */
 object ApplicationConfig {
-    val issuer: Uri = Uri.parse("https://d7cd1286593a.eu.ngrok.io/oauth/v2/oauth-anonymous")
+    val issuer: Uri = Uri.parse("https://e6c9830b3f3f.eu.ngrok.io/oauth/v2/oauth-anonymous")
     val redirectUri: Uri = Uri.parse("io.curity.client:/callback")
     val postLogoutRedirectUri: Uri = Uri.parse("io.curity.client:/logoutcallback")
     const val scope = "openid profile"

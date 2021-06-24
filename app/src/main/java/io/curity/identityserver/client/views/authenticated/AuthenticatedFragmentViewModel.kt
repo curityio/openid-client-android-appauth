@@ -50,9 +50,9 @@ class AuthenticatedFragmentViewModel(
 
         try {
             val jwtClaims = readIdTokenClaims(idToken)
-            subject = "Subject: ${jwtClaims.subject}"
-            accessToken = "Access Token: ${ApplicationStateManager.tokenResponse?.accessToken}"
-            refreshToken = "Refresh Token: ${ApplicationStateManager.tokenResponse?.refreshToken}"
+            subject = jwtClaims.subject
+            accessToken = ApplicationStateManager.tokenResponse?.accessToken
+            refreshToken = ApplicationStateManager.tokenResponse?.refreshToken
             notifyChange()
 
         } catch(ex: ApplicationException) {

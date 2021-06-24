@@ -11,30 +11,55 @@
         android:gravity="center">
 
         <TextView
-            android:id="@+id/hello_subject"
+            android:id="@+id/subject_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
+            android:layout_marginLeft="20dp"
+            android:text="@string/subject"
+            style="@style/LabelStyle" />
+
+        <TextView
+            android:id="@+id/subject_value"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
             android:text="@{model.subject}"
-            android:textAlignment="center"
-            android:textSize="24sp"
-            android:textStyle="bold" />
+            style="@style/ValueStyle"/>
 
         <TextView
-            android:id="@+id/access_token"
+            android:id="@+id/access_token_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
+            android:layout_marginLeft="20dp"
+            android:text="@string/access_token"
+            style="@style/LabelStyle"/>
+
+        <TextView
+            android:id="@+id/access_token_value"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
             android:text="@{model.accessToken}"
-            android:textAlignment="center" />
+            style="@style/ValueStyle"/>
 
         <TextView
-            android:id="@+id/refresh_token"
+            android:id="@+id/refresh_token_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
+            android:layout_marginLeft="20dp"
+            android:text="@string/refresh_token"
+            style="@style/LabelStyle" />
+
+        <TextView
+            android:id="@+id/refresh_token_value"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
             android:text="@{model.refreshToken}"
-            android:textAlignment="center" />
+            style="@style/ValueStyle"/>
 
         <Button
             android:id="@+id/refreshButton"
