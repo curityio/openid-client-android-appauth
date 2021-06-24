@@ -56,12 +56,13 @@ class AuthenticatedFragmentViewModel(
             notifyChange()
 
         } catch(ex: ApplicationException) {
-            error.setErrorDetails(ex)
+            error.setDetails(ex)
         }
     }
 
     fun refreshAccessToken() {
 
+        error.clearDetails()
         val refreshToken = ApplicationStateManager.tokenResponse?.refreshToken ?: return
 
         CoroutineScope(Dispatchers.IO).launch {
@@ -85,7 +86,7 @@ class AuthenticatedFragmentViewModel(
             } catch (ex: ApplicationException) {
 
                 withContext(Dispatchers.Main) {
-                    error.setErrorDetails(ex)
+                    error.setDetails(ex)
                 }
             }
         }
@@ -93,6 +94,7 @@ class AuthenticatedFragmentViewModel(
 
     fun startLogout() {
 
+        error.clearDetails()
         val intent = appauth.getEndSessionRedirectIntent(
             ApplicationStateManager.serverConfiguration!!,
             ApplicationStateManager.registrationResponse!!,
@@ -110,7 +112,7 @@ class AuthenticatedFragmentViewModel(
             events.onEndSession()
 
         } catch (ex: ApplicationException) {
-            error.setErrorDetails(ex)
+            error.setDetails(ex)
         }
     }
 

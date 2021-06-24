@@ -62,7 +62,7 @@ class UnauthenticatedFragmentViewModel(
             } catch (ex: ApplicationException) {
 
                 withContext(Dispatchers.Main) {
-                    error.setErrorDetails(ex)
+                    error.setDetails(ex)
                 }
             }
         }
@@ -73,6 +73,7 @@ class UnauthenticatedFragmentViewModel(
      */
     fun startLogin() {
 
+        error.clearDetails()
         val intent = appauth.getAuthorizationRedirectIntent(
             ApplicationStateManager.serverConfiguration!!,
             ApplicationStateManager.registrationResponse!!
@@ -87,14 +88,14 @@ class UnauthenticatedFragmentViewModel(
      */
     fun endLogin(data: Intent) {
 
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
+        try {
 
-                val authorizationResponse = appauth.handleAuthorizationResponse(
-                    AuthorizationResponse.fromIntent(data),
-                    AuthorizationException.fromIntent(data))
+            val authorizationResponse = appauth.handleAuthorizationResponse(
+                AuthorizationResponse.fromIntent(data),
+                AuthorizationException.fromIntent(data))
 
-                if (authorizationResponse != null) {
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
 
                     val tokenResponse = appauth.redeemCodeForTokens(
                         authorizationResponse,
@@ -105,14 +106,16 @@ class UnauthenticatedFragmentViewModel(
                         ApplicationStateManager.tokenResponse = tokenResponse
                         events.onAuthenticated()
                     }
-                }
+                } catch (ex: ApplicationException) {
 
-            } catch (ex: ApplicationException) {
-
-                withContext(Dispatchers.Main) {
-                    error.setErrorDetails(ex)
+                    withContext(Dispatchers.Main) {
+                        error.setDetails(ex)
+                    }
                 }
             }
+
+        } catch (ex: ApplicationException) {
+            error.setDetails(ex)
         }
     }
 }

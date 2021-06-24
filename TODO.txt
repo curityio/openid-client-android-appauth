@@ -1,14 +1,23 @@
 ISSUES
 ------
-Clear error on retry
 Logout only works intermittently - see if disposing custom tab makes a difference
+Errors higher up as suggested from Urban
+UI refinements as suggested by Urban
 
-SECURITY
---------
-DCR token with a client secret
+TESTING
+-------
+Run on device
+Run on old emulator
+Run against Cognito?
+
+FINALIZING
+----------
+Get DCR token with a client secret working via curl and add sections on this
+Add sections on development log output, for educational purposes only
 
 FEEDBACK
 --------
 Daniel: would like guidance on HAAPI and old device versions feature switch
 Daniel: Authenticated DCR should use implicit flow but creates a messy sample
 Jacob: Demonstrate authenticated DCR via Client Credentials curl request and say more about it
+Travis: I would only use Claimed HTTPS Schemes with AppAuth

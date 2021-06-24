@@ -36,7 +36,7 @@ import kotlin.coroutines.suspendCoroutine
  */
 class AppAuthHandler(val context: Context) {
 
-    private val authorizationService: AuthorizationService = AuthorizationService(context)
+    private var authorizationService = AuthorizationService(context)
 
     /*
      * Get OpenID Connect endpoints and ensure that dynamic client registration is configured
@@ -91,7 +91,8 @@ class AppAuthHandler(val context: Context) {
                     .setAdditionalParameters(extraParams)
                     .build()
 
-            authorizationService.performRegistrationRequest(nonTemplatizedRequest) { registrationResponse, ex ->
+            val authService = AuthorizationService(context)
+            authService.performRegistrationRequest(nonTemplatizedRequest) { registrationResponse, ex ->
                 when {
                     registrationResponse != null -> {
                         Log.i(ContentValues.TAG, "Registration data retrieved successfully")
@@ -134,7 +135,7 @@ class AppAuthHandler(val context: Context) {
      */
     fun handleAuthorizationResponse(
         response: AuthorizationResponse?,
-        ex: AuthorizationException?): AuthorizationResponse? {
+        ex: AuthorizationException?): AuthorizationResponse {
 
         if (response == null) {
             throw createAuthorizationError("Authorization Request Error", ex)
@@ -157,7 +158,8 @@ class AppAuthHandler(val context: Context) {
             val extraParams = mapOf("client_secret" to registrationResponse.clientSecret)
             val tokenRequest = response.createTokenExchangeRequest(extraParams)
 
-            authorizationService.performTokenRequest(tokenRequest) { tokenResponse, ex ->
+            val authService = AuthorizationService(context)
+            authService.performTokenRequest(tokenRequest) { tokenResponse, ex ->
 
                 when {
                     tokenResponse != null -> {
@@ -191,7 +193,8 @@ class AppAuthHandler(val context: Context) {
                 .setAdditionalParameters(extraParams)
                 .build()
 
-            authorizationService.performTokenRequest(tokenRequest) { tokenResponse, ex ->
+            val authService = AuthorizationService(context)
+            authService.performTokenRequest(tokenRequest) { tokenResponse, ex ->
 
                 when {
                     tokenResponse != null -> {
@@ -255,7 +258,7 @@ class AppAuthHandler(val context: Context) {
 
         val parts = mutableListOf<String>()
 
-        if (ex?.type != null && ex?.code != null) {
+        if (ex?.type != null) {
             parts.add("(${ex.type} / ${ex.code})")
         }
 

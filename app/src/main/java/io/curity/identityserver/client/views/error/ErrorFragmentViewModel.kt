@@ -28,9 +28,15 @@ class ErrorFragmentViewModel : ViewModel(), Observable {
     var description = ""
     private val callbacks = PropertyChangeRegistry()
 
-    fun setErrorDetails(ex: ApplicationException) {
+    fun setDetails(ex: ApplicationException) {
         this.title = ex.errorTitle
         this.description = ex.errorDescription ?: GENERIC_ERROR
+        callbacks.notifyCallbacks(this, 0, null)
+    }
+
+    fun clearDetails() {
+        this.title = ""
+        this.description = ""
         callbacks.notifyCallbacks(this, 0, null)
     }
 
