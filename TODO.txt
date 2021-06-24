@@ -1,30 +1,14 @@
-POLISH
+ISSUES
 ------
-Use welcome image from HAAPI sample
-use getString for subject / access token / refresh token strings.xml
-Better presented labels and values in line with HAAPI iOS
-
-BUGS
-----
 Clear error on retry
 Logout only works intermittently - see if disposing custom tab makes a difference
-ApplicationStateManager thread safety
 
 SECURITY
 --------
 DCR token with a client secret
 
-JUSTIFICATION
--------------
-Good mobile samples have high value in terms of customers and readers
-Mention most mainstream coding style is single activity
-Leads to simplest code - a few simple fragments
-AppAuth examples use old style navigation which makes the OAuth harder to follow
-Simpler code makes error handling easier to implement reliably
-Multiple ways to code an Android app and solution can be adapted
-View model means no manual getting and setting of controls
-
 FEEDBACK
 --------
-Daniel: HAAPI and old device versions feature switch
+Daniel: would like guidance on HAAPI and old device versions feature switch
 Daniel: Authenticated DCR should use implicit flow but creates a messy sample
+Jacob: Demonstrate authenticated DCR via Client Credentials curl request and say more about it

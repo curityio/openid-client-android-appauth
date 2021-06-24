@@ -249,7 +249,7 @@ class AppAuthHandler(val context: Context) {
     }
 
     /*
-     * Process AppAuth error / error_description fields
+     * Process standard OAuth error / error_description fields and also AppAuth error identifiers
      */
     private fun createAuthorizationError(title: String, ex: AuthorizationException?): ServerCommunicationException {
 
