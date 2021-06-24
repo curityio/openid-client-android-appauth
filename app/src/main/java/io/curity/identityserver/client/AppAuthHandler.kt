@@ -118,7 +118,6 @@ class AppAuthHandler(val context: Context) {
         // Use acr_values to select a particular authentication method at runtime
         val extraParams = mutableMapOf<String, String>()
         //extraParams.put("acr_values", "urn:se:curity:authentication:html-form:Username-Password")
-        extraParams.put("acr_values", "urn:se:curity:authentication:html-form:x-Password")
 
         val request = AuthorizationRequest.Builder(serverConfiguration, registrationResponse.clientId,
             ResponseTypeValues.CODE,
@@ -254,10 +253,14 @@ class AppAuthHandler(val context: Context) {
      */
     private fun createAuthorizationError(title: String, ex: AuthorizationException?): ServerCommunicationException {
 
-        val code: String? = if (ex?.error != null) {
-            ex.error!!
-        } else {
-            null
+        val parts = mutableListOf<String>()
+
+        if (ex?.type != null && ex?.code != null) {
+            parts.add("(${ex.type} / ${ex.code})")
+        }
+
+        if (ex?.error != null) {
+            parts.add(ex.error!!)
         }
 
         val description: String = if (ex?.errorDescription != null) {
@@ -265,15 +268,10 @@ class AppAuthHandler(val context: Context) {
         } else {
             GENERIC_ERROR
         }
+        parts.add(description)
 
-        val fullDescription: String
-        if (code != null) {
-            fullDescription = "$code : $description"
-        } else {
-            fullDescription = description
-        }
-
-        Log.e(ContentValues.TAG, "$title : $fullDescription")
+        val fullDescription = parts.joinToString(" : ")
+        Log.e(ContentValues.TAG, fullDescription)
         return ServerCommunicationException(title, fullDescription)
     }
 }
