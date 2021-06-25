@@ -22,4 +22,4 @@ See the [Curity Android AppAuth Article](https://curity.io/resources/learn/kotli
 
 ## More Information
 
-Please visit [https://curity.io] for more information about the Curity Identity Server.
+Please visit [https://curity.io](https://curity.io) for more information about the Curity Identity Server.
