@@ -119,6 +119,7 @@ class AppAuthHandler(val context: Context) {
         // Use acr_values to select a particular authentication method at runtime
         val extraParams = mutableMapOf<String, String>()
         //extraParams.put("acr_values", "urn:se:curity:authentication:html-form:Username-Password")
+        extraParams.put("acr_values", "urn:se:curity:authentication:html-form:Username-Passwor2d")
 
         val request = AuthorizationRequest.Builder(serverConfiguration, registrationResponse.clientId,
             ResponseTypeValues.CODE,
