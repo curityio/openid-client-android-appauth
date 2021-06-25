@@ -2,13 +2,22 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools">
     <data>
+        <import type="android.view.View"/>
         <variable name="model" type="io.curity.identityserver.client.views.unauthenticated.UnauthenticatedFragmentViewModel" />
     </data>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center">
+        android:orientation="vertical">
+
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/fragment_unauthenticated_error"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:name="io.curity.identityserver.client.views.error.ErrorFragment"
+            android:visibility="@{model.error.hasDetails() ? View.VISIBLE : View.GONE}"
+            tools:layout="@layout/fragment_error">
+        </androidx.fragment.app.FragmentContainerView>
 
         <TextView
             android:id="@+id/welcome_text"
@@ -17,38 +26,25 @@
             android:layout_marginTop="20dp"
             android:text="@string/welcome_text"
             android:textAlignment="center"
-            android:textSize="24sp"
-            android:textStyle="bold" />
+            style="@style/LabelStyle" />
 
         <ImageView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
             android:src="@drawable/start_illustration"
-            android:layout_marginTop="20dp" />
+            android:contentDescription="@string/welcome_text" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/loginButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
             android:text="@string/login_button"
             android:onClick="@{() -> model.startLogin()}"
-            android:layout_marginTop="20dp"
             android:enabled="@{model.isRegistered}"
-            style="@style/ButtonStyle"/>
-
-        <View
-            android:layout_width="wrap_content"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
-
-        <androidx.fragment.app.FragmentContainerView
-            android:id="@+id/fragment_unauthenticated_error"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:name="io.curity.identityserver.client.views.error.ErrorFragment"
-            tools:layout="@layout/fragment_error">
-        </androidx.fragment.app.FragmentContainerView>
+            style="@style/ButtonStyle"
+            />
 
     </LinearLayout>
 </layout>

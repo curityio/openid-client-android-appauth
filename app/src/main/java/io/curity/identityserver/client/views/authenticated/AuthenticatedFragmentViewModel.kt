@@ -38,7 +38,7 @@ import org.jose4j.jwt.consumer.JwtConsumerBuilder
 class AuthenticatedFragmentViewModel(
     private val events: AuthenticatedFragmentEvents,
     private val appauth: AppAuthHandler,
-    private val error: ErrorFragmentViewModel) : BaseObservable() {
+    val error: ErrorFragmentViewModel) : BaseObservable() {
 
     var subject: String? = null
     var accessToken: String? = null

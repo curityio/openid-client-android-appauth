@@ -40,6 +40,10 @@ class ErrorFragmentViewModel : ViewModel(), Observable {
         callbacks.notifyCallbacks(this, 0, null)
     }
 
+    fun hasDetails(): Boolean {
+        return this.title.isNotEmpty()
+    }
+
     override fun addOnPropertyChangedCallback(callback: Observable.OnPropertyChangedCallback?) {
         callbacks.add(callback)
     }

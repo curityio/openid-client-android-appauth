@@ -33,7 +33,7 @@ import net.openid.appauth.AuthorizationResponse
 class UnauthenticatedFragmentViewModel(
     private val events: UnauthenticatedFragmentEvents,
     private val appauth: AppAuthHandler,
-    private val error: ErrorFragmentViewModel) : BaseObservable() {
+    val error: ErrorFragmentViewModel) : BaseObservable() {
 
     var isRegistered = false
 

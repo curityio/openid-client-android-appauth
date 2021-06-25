@@ -6,13 +6,12 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_marginBottom="20dp">
+        android:orientation="vertical">
         <TextView
             android:id="@+id/error"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="20dp"
+            android:layout_marginTop="20dp"
             android:text="@{model.title}"
             style="@style/LabelStyle" />
         <TextView
@@ -21,8 +20,6 @@
             android:layout_height="wrap_content"
             android:text="@{model.description}"
             android:textColor="@color/colorRed"
-            android:layout_marginLeft="20dp"
-            android:layout_marginRight="20dp"
             style="@style/ErrorValueStyle"/>
     </LinearLayout>
 

@@ -2,20 +2,28 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools">
     <data>
+        <import type="android.view.View"/>
         <variable name="model" type="io.curity.identityserver.client.views.authenticated.AuthenticatedFragmentViewModel" />
     </data>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:gravity="center">
+        android:orientation="vertical">
+
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/fragment_authenticated_error"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:name="io.curity.identityserver.client.views.error.ErrorFragment"
+            android:visibility="@{model.error.hasDetails() ? View.VISIBLE : View.GONE}"
+            tools:layout="@layout/fragment_error">
+        </androidx.fragment.app.FragmentContainerView>
 
         <TextView
             android:id="@+id/subject_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
-            android:layout_marginLeft="20dp"
             android:text="@string/subject"
             style="@style/LabelStyle" />
 
@@ -23,7 +31,6 @@
             android:id="@+id/subject_value"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="20dp"
             android:text="@{model.subject}"
             style="@style/ValueStyle"/>
 
@@ -32,7 +39,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
-            android:layout_marginLeft="20dp"
             android:text="@string/access_token"
             style="@style/LabelStyle"/>
 
@@ -40,7 +46,6 @@
             android:id="@+id/access_token_value"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="20dp"
             android:text="@{model.accessToken}"
             style="@style/ValueStyle"/>
 
@@ -49,7 +54,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
-            android:layout_marginLeft="20dp"
             android:text="@string/refresh_token"
             style="@style/LabelStyle" />
 
@@ -57,11 +61,10 @@
             android:id="@+id/refresh_token_value"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="20dp"
             android:text="@{model.refreshToken}"
             style="@style/ValueStyle"/>
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/refreshButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -70,7 +73,7 @@
             android:onClick="@{() -> model.refreshAccessToken()}"
             style="@style/ButtonStyle"/>
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/logoutButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -78,20 +81,6 @@
             android:text="@string/logout_button"
             android:onClick="@{() -> model.startLogout()}"
             style="@style/ButtonStyle"/>
-
-        <View
-            android:layout_width="wrap_content"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
-
-        <androidx.fragment.app.FragmentContainerView
-            android:id="@+id/fragment_authenticated_error"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:name="io.curity.identityserver.client.views.error.ErrorFragment"
-            tools:layout="@layout/fragment_error">
-        </androidx.fragment.app.FragmentContainerView>
 
     </LinearLayout>
 </layout>
