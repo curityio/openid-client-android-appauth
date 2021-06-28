@@ -47,11 +47,11 @@ class UnauthenticatedFragmentViewModel(
 
             try {
 
-                if (ApplicationStateManager.serverConfiguration == null) {
-                    ApplicationStateManager.serverConfiguration = appauth.fetchMetadata(ApplicationConfig.issuer)
+                if (ApplicationStateManager.metadata == null) {
+                    ApplicationStateManager.metadata = appauth.fetchMetadata()
                 }
                 if (ApplicationStateManager.registrationResponse == null) {
-                    ApplicationStateManager.registrationResponse = appauth.registerClient(ApplicationStateManager.serverConfiguration!!)
+                    ApplicationStateManager.registrationResponse = appauth.registerClient(ApplicationStateManager.metadata!!)
                 }
 
                 withContext(Dispatchers.Main) {
@@ -75,7 +75,7 @@ class UnauthenticatedFragmentViewModel(
 
         error.clearDetails()
         val intent = appauth.getAuthorizationRedirectIntent(
-            ApplicationStateManager.serverConfiguration!!,
+            ApplicationStateManager.metadata!!,
             ApplicationStateManager.registrationResponse!!
         )
 
@@ -98,8 +98,8 @@ class UnauthenticatedFragmentViewModel(
                 try {
 
                     val tokenResponse = appauth.redeemCodeForTokens(
-                        authorizationResponse,
-                        ApplicationStateManager.registrationResponse!!
+                        ApplicationStateManager.registrationResponse!!,
+                        authorizationResponse
                     )
 
                     withContext(Dispatchers.Main) {

@@ -40,40 +40,51 @@ class AuthenticatedFragmentViewModel(
     private val appauth: AppAuthHandler,
     val error: ErrorFragmentViewModel) : BaseObservable() {
 
-    var subject: String? = null
-    var accessToken: String? = null
-    var refreshToken: String? = null
+    var subject: String = ""
+    var accessToken: String = ""
+    var refreshToken: String = ""
+
+    var hasRefreshToken = false
+    var hasIdToken = false
 
     fun processTokens() {
 
-        val idToken = ApplicationStateManager.idToken ?: return
-
         try {
-            val jwtClaims = readIdTokenClaims(idToken)
-            subject = jwtClaims.subject
-            accessToken = ApplicationStateManager.tokenResponse?.accessToken
-            refreshToken = ApplicationStateManager.tokenResponse?.refreshToken
-            notifyChange()
+
+            if (ApplicationStateManager.tokenResponse?.accessToken != null) {
+                accessToken = ApplicationStateManager.tokenResponse?.accessToken!!
+            }
+
+            if (ApplicationStateManager.tokenResponse?.refreshToken != null) {
+                refreshToken = ApplicationStateManager.tokenResponse?.refreshToken!!
+                hasRefreshToken = true
+            }
+
+            if (ApplicationStateManager.tokenResponse?.idToken != null) {
+                hasIdToken = true
+                val jwtClaims = readIdTokenClaims(ApplicationStateManager.tokenResponse?.idToken!!)
+                subject = jwtClaims.subject
+            }
 
         } catch(ex: ApplicationException) {
             error.setDetails(ex)
         }
+
+        notifyChange()
     }
 
     fun refreshAccessToken() {
 
         error.clearDetails()
-        val refreshToken = ApplicationStateManager.tokenResponse?.refreshToken ?: return
 
         CoroutineScope(Dispatchers.IO).launch {
 
             try {
 
                 val response = this@AuthenticatedFragmentViewModel.appauth.refreshAccessToken(
-                    refreshToken,
-                    ApplicationStateManager.serverConfiguration!!,
-                    ApplicationStateManager.registrationResponse!!
-                )
+                    ApplicationStateManager.metadata!!,
+                    ApplicationStateManager.registrationResponse!!,
+                    refreshToken)
 
                 withContext(Dispatchers.Main) {
                     ApplicationStateManager.tokenResponse = response
@@ -96,10 +107,9 @@ class AuthenticatedFragmentViewModel(
 
         error.clearDetails()
         val intent = appauth.getEndSessionRedirectIntent(
-            ApplicationStateManager.serverConfiguration!!,
+            ApplicationStateManager.metadata!!,
             ApplicationStateManager.registrationResponse!!,
-            ApplicationStateManager.idToken,
-            ApplicationConfig.postLogoutRedirectUri)
+            ApplicationStateManager.idToken)
 
         events.startLogoutRedirect(intent)
     }
@@ -122,7 +132,7 @@ class AuthenticatedFragmentViewModel(
             .setSkipSignatureVerification()
             .setRequireSubject()
             .setAllowedClockSkewInSeconds(30)
-            .setExpectedIssuer(ApplicationStateManager.serverConfiguration?.discoveryDoc?.issuer)
+            .setExpectedIssuer(ApplicationStateManager.metadata?.discoveryDoc?.issuer)
             .setExpectedAudience(ApplicationStateManager.registrationResponse?.clientId)
             .build()
 

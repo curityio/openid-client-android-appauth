@@ -71,6 +71,7 @@
             android:layout_marginTop="20dp"
             android:text="@string/refresh_button"
             android:onClick="@{() -> model.refreshAccessToken()}"
+            android:enabled="@{model.hasRefreshToken}"
             style="@style/ButtonStyle"/>
 
         <com.google.android.material.button.MaterialButton
@@ -80,6 +81,7 @@
             android:layout_marginTop="20dp"
             android:text="@string/logout_button"
             android:onClick="@{() -> model.startLogout()}"
+            android:enabled="@{model.hasIdToken}"
             style="@style/ButtonStyle"/>
 
     </LinearLayout>

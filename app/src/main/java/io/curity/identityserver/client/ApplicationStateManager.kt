@@ -30,7 +30,7 @@ object ApplicationStateManager {
     private var authState: AuthState? = null
     var idToken: String? = null
 
-    var serverConfiguration: AuthorizationServiceConfiguration?
+    var metadata: AuthorizationServiceConfiguration?
         get () {
             return authState?.authorizationServiceConfiguration
         }
@@ -53,7 +53,7 @@ object ApplicationStateManager {
         set (tokenResponse) {
 
             val oldAuthState = authState
-            authState = AuthState(serverConfiguration!!)
+            authState = AuthState(metadata!!)
             if (oldAuthState != null) {
                 authState!!.update(oldAuthState.lastRegistrationResponse)
             }

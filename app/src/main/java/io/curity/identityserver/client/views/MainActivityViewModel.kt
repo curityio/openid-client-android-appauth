@@ -19,12 +19,14 @@ package io.curity.identityserver.client.views
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import io.curity.identityserver.client.AppAuthHandler
+import io.curity.identityserver.client.configuration.ApplicationConfig
 
 class MainActivityViewModel() : ViewModel() {
 
     lateinit var appauth: AppAuthHandler
 
     fun initialize(context: Context) {
-        this.appauth = AppAuthHandler(context)
+        val config = ApplicationConfig()
+        this.appauth = AppAuthHandler(config, context)
     }
 }

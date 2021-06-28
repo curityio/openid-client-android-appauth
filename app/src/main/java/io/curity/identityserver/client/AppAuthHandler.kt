@@ -34,22 +34,22 @@ import kotlin.coroutines.suspendCoroutine
 /*
  * Manage AppAuth integration in one class in order to reduce code in the rest of the app
  */
-class AppAuthHandler(val context: Context) {
+class AppAuthHandler(private val config: ApplicationConfig, val context: Context) {
 
-    private var authorizationService = AuthorizationService(context)
+    private val authorizationService = AuthorizationService(context)
 
     /*
      * Get OpenID Connect endpoints and ensure that dynamic client registration is configured
      */
-    suspend fun fetchMetadata(issuer: Uri): AuthorizationServiceConfiguration {
+    suspend fun fetchMetadata(): AuthorizationServiceConfiguration {
 
         return suspendCoroutine { continuation ->
 
-            fetchFromIssuer(issuer) { config, ex ->
+            fetchFromIssuer(config.issuer) { metadata, ex ->
 
                 when {
-                    config != null -> {
-                        if (config.registrationEndpoint == null) {
+                    metadata != null -> {
+                        if (metadata.registrationEndpoint == null) {
                             val error = ApplicationException(
                                 "Invalid Configuration Error",
                                 "No registration endpoint is configured in the Identity Server"
@@ -57,9 +57,9 @@ class AppAuthHandler(val context: Context) {
                             continuation.resumeWithException(error)
                         }
 
-                        Log.i(ContentValues.TAG, "Discovery document retrieved successfully")
-                        Log.d(ContentValues.TAG, config.toJsonString())
-                        continuation.resume(config)
+                        Log.i(ContentValues.TAG, "Metadata retrieved successfully")
+                        Log.d(ContentValues.TAG, metadata.toJsonString())
+                        continuation.resume(metadata)
                     }
                     else -> {
                         val error = createAuthorizationError("Metadata Download Error", ex)
@@ -73,19 +73,19 @@ class AppAuthHandler(val context: Context) {
     /*
      * Perform dynamic client registration and then store the response
      */
-    suspend fun registerClient(serverConfiguration: AuthorizationServiceConfiguration): RegistrationResponse {
+    suspend fun registerClient(metadata: AuthorizationServiceConfiguration): RegistrationResponse {
 
         return suspendCoroutine { continuation ->
 
             val extraParams = mutableMapOf<String, String>()
-            extraParams["scope"] = ApplicationConfig.scope
+            extraParams["scope"] = config.scope
             extraParams["requires_consent"] = "false"
-            extraParams["post_logout_redirect_uris"] = ApplicationConfig.postLogoutRedirectUri.toString()
+            extraParams["post_logout_redirect_uris"] = config.postLogoutRedirectUri.toString()
 
             val nonTemplatizedRequest =
                 RegistrationRequest.Builder(
-                    serverConfiguration,
-                    listOf(ApplicationConfig.redirectUri)
+                    metadata,
+                    listOf(config.redirectUri)
                 )
                     .setGrantTypeValues(listOf(GrantTypeValues.AUTHORIZATION_CODE))
                     .setAdditionalParameters(extraParams)
@@ -113,18 +113,17 @@ class AppAuthHandler(val context: Context) {
      * acr_values can be sent as an extra parameter, to control authentication methods
      */
     fun getAuthorizationRedirectIntent(
-        serverConfiguration: AuthorizationServiceConfiguration,
+        metadata: AuthorizationServiceConfiguration,
         registrationResponse: RegistrationResponse): Intent {
 
         // Use acr_values to select a particular authentication method at runtime
         val extraParams = mutableMapOf<String, String>()
         //extraParams.put("acr_values", "urn:se:curity:authentication:html-form:Username-Password")
-        extraParams.put("acr_values", "urn:se:curity:authentication:html-form:Username-Passwor2d")
 
-        val request = AuthorizationRequest.Builder(serverConfiguration, registrationResponse.clientId,
+        val request = AuthorizationRequest.Builder(metadata, registrationResponse.clientId,
             ResponseTypeValues.CODE,
-            ApplicationConfig.redirectUri)
-            .setScopes(ApplicationConfig.scope)
+            config.redirectUri)
+            .setScopes(config.scope)
             .setAdditionalParameters(extraParams)
             .build()
 
@@ -151,13 +150,13 @@ class AppAuthHandler(val context: Context) {
      * Handle the authorization code grant request to get tokens
      */
     suspend fun redeemCodeForTokens(
-            response: AuthorizationResponse,
-            registrationResponse: RegistrationResponse): TokenResponse? {
+        registrationResponse: RegistrationResponse,
+        authResponse: AuthorizationResponse): TokenResponse? {
 
         return suspendCoroutine { continuation ->
 
             val extraParams = mapOf("client_secret" to registrationResponse.clientSecret)
-            val tokenRequest = response.createTokenExchangeRequest(extraParams)
+            val tokenRequest = authResponse.createTokenExchangeRequest(extraParams)
 
             val authService = AuthorizationService(context)
             authService.performTokenRequest(tokenRequest) { tokenResponse, ex ->
@@ -181,14 +180,14 @@ class AppAuthHandler(val context: Context) {
      * Try to refresh an access token and return null when the refresh token expires
      */
     suspend fun refreshAccessToken(
-        refreshToken: String,
-        serverConfiguration: AuthorizationServiceConfiguration,
-        registrationResponse: RegistrationResponse): TokenResponse? {
+        metadata: AuthorizationServiceConfiguration,
+        registrationResponse: RegistrationResponse,
+        refreshToken: String): TokenResponse? {
 
         return suspendCoroutine { continuation ->
 
             val extraParams = mapOf("client_secret" to registrationResponse.clientSecret)
-            val tokenRequest = TokenRequest.Builder(serverConfiguration, registrationResponse.clientId)
+            val tokenRequest = TokenRequest.Builder(metadata, registrationResponse.clientId)
                 .setGrantType(GrantTypeValues.REFRESH_TOKEN)
                 .setRefreshToken(refreshToken)
                 .setAdditionalParameters(extraParams)
@@ -225,15 +224,14 @@ class AppAuthHandler(val context: Context) {
     /*
      * Do an OpenID Connect end session redirect and remove the SSO cookie
      */
-    fun getEndSessionRedirectIntent(serverConfiguration: AuthorizationServiceConfiguration,
+    fun getEndSessionRedirectIntent(metadata: AuthorizationServiceConfiguration,
                                     registrationResponse: RegistrationResponse,
-                                    idToken: String?,
-                                    postLogoutRedirectUri: Uri): Intent {
+                                    idToken: String?): Intent {
 
         val extraParams = mapOf("client_id" to registrationResponse.clientId)
-        val request = EndSessionRequest.Builder(serverConfiguration)
+        val request = EndSessionRequest.Builder(metadata)
             .setIdTokenHint(idToken)
-            .setPostLogoutRedirectUri(postLogoutRedirectUri)
+            .setPostLogoutRedirectUri(config.postLogoutRedirectUri)
             .setAdditionalParameters(extraParams)
             .build()
 
