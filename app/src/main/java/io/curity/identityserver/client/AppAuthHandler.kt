@@ -208,6 +208,7 @@ class AppAuthHandler(private val config: ApplicationConfig, val context: Context
                             ex.type == AuthorizationException.TYPE_OAUTH_TOKEN_ERROR &&
                             ex.code == AuthorizationException.TokenRequestErrors.INVALID_GRANT.code
                         ) {
+                            Log.i(ContentValues.TAG, "Refresh token expired and the user must re-authenticate")
                             continuation.resume(null)
 
                         } else {
