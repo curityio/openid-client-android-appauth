@@ -20,7 +20,7 @@ Once authenticated the `Authenticated View` show how to work with tokens and sig
 
 ![Authenticated View](doc/android-authenticated-view.png)
 
-The sample also demonstrates handling of AppAuth errors to ensure a reliable app.
+The example app also demonstrates reliable handling of AppAuth errors.
 
 ## Security
 
