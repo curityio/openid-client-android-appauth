@@ -23,6 +23,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.navigation.fragment.NavHostFragment
 import io.curity.identityserver.client.R
 import io.curity.identityserver.client.databinding.ActivityMainBinding
+import java.lang.ref.WeakReference
 
 class MainActivity : AppCompatActivity() {
 
@@ -33,7 +34,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         val model: MainActivityViewModel by viewModels()
-        model.initialize(this)
+        model.initialize(WeakReference(this))
 
         this.binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         this.binding.model = model
@@ -47,5 +48,10 @@ class MainActivity : AppCompatActivity() {
     fun onLoggedOutNavigate() {
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         navHostFragment.navController.navigate(R.id.fragment_unauthenticated)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        this.binding.model!!.save()
     }
 }

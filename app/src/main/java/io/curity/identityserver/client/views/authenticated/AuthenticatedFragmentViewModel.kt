@@ -34,9 +34,10 @@ import net.openid.appauth.TokenResponse
 import org.jose4j.jwt.JwtClaims
 import org.jose4j.jwt.consumer.InvalidJwtException
 import org.jose4j.jwt.consumer.JwtConsumerBuilder
+import java.lang.ref.WeakReference
 
 class AuthenticatedFragmentViewModel(
-    private val events: AuthenticatedFragmentEvents,
+    private val events: WeakReference<AuthenticatedFragmentEvents>,
     private val appauth: AppAuthHandler,
     val error: ErrorFragmentViewModel) : BaseObservable() {
 
@@ -52,22 +53,22 @@ class AuthenticatedFragmentViewModel(
         try {
 
             if (ApplicationStateManager.tokenResponse?.accessToken != null) {
-                accessToken = ApplicationStateManager.tokenResponse?.accessToken!!
+                this.accessToken = ApplicationStateManager.tokenResponse?.accessToken!!
             }
 
             if (ApplicationStateManager.tokenResponse?.refreshToken != null) {
-                refreshToken = ApplicationStateManager.tokenResponse?.refreshToken!!
-                hasRefreshToken = true
+                this.refreshToken = ApplicationStateManager.tokenResponse?.refreshToken!!
+                this.hasRefreshToken = true
             }
 
             if (ApplicationStateManager.tokenResponse?.idToken != null) {
-                hasIdToken = true
+                this.hasIdToken = true
                 val jwtClaims = readIdTokenClaims(ApplicationStateManager.tokenResponse?.idToken!!)
-                subject = jwtClaims.subject
+                this.subject = jwtClaims.subject
             }
 
         } catch(ex: ApplicationException) {
-            error.setDetails(ex)
+            this.error.setDetails(ex)
         }
 
         notifyChange()
@@ -79,7 +80,7 @@ class AuthenticatedFragmentViewModel(
         val registrationResponse = ApplicationStateManager.registrationResponse!!
         val refreshToken = ApplicationStateManager.tokenResponse!!.refreshToken!!
         var tokenResponse: TokenResponse?
-        error.clearDetails()
+        this.error.clearDetails()
 
         CoroutineScope(Dispatchers.IO).launch {
 
@@ -93,7 +94,7 @@ class AuthenticatedFragmentViewModel(
                 withContext(Dispatchers.Main) {
                     ApplicationStateManager.tokenResponse = tokenResponse
                     if (tokenResponse == null) {
-                        events.onLoggedOut()
+                        events.get()?.onLoggedOut()
                     }
                     processTokens()
                 }
@@ -109,24 +110,24 @@ class AuthenticatedFragmentViewModel(
 
     fun startLogout() {
 
-        error.clearDetails()
+        this.error.clearDetails()
         val intent = appauth.getEndSessionRedirectIntent(
             ApplicationStateManager.metadata!!,
             ApplicationStateManager.registrationResponse!!,
             ApplicationStateManager.idToken)
 
-        events.startLogoutRedirect(intent)
+        this.events.get()?.startLogoutRedirect(intent)
     }
 
     fun endLogout(data: Intent) {
 
         try {
-            appauth.handleEndSessionResponse(AuthorizationException.fromIntent(data))
+            this.appauth.handleEndSessionResponse(AuthorizationException.fromIntent(data))
             ApplicationStateManager.tokenResponse = null
-            events.onLoggedOut()
+            this.events.get()?.onLoggedOut()
 
         } catch (ex: ApplicationException) {
-            error.setDetails(ex)
+            this.error.setDetails(ex)
         }
     }
 
@@ -141,8 +142,11 @@ class AuthenticatedFragmentViewModel(
             .build()
 
         try {
+
             return jwtConsumer.processToClaims(idToken)
+
         } catch (e: InvalidJwtException) {
+
             Log.e(ContentValues.TAG, "${e.message}")
             throw InvalidIdTokenException("Failed to parse ID Token")
         }

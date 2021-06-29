@@ -19,7 +19,6 @@ package io.curity.identityserver.client
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.util.Log
 import io.curity.identityserver.client.configuration.ApplicationConfig
 import io.curity.identityserver.client.errors.ApplicationException
@@ -36,7 +35,7 @@ import kotlin.coroutines.suspendCoroutine
  */
 class AppAuthHandler(private val config: ApplicationConfig, val context: Context) {
 
-    private val authorizationService = AuthorizationService(context)
+    private var authService = AuthorizationService(context)
 
     /*
      * Get OpenID Connect endpoints and ensure that dynamic client registration is configured
@@ -91,7 +90,6 @@ class AppAuthHandler(private val config: ApplicationConfig, val context: Context
                     .setAdditionalParameters(extraParams)
                     .build()
 
-            val authService = AuthorizationService(context)
             authService.performRegistrationRequest(nonTemplatizedRequest) { registrationResponse, ex ->
                 when {
                     registrationResponse != null -> {
@@ -127,7 +125,7 @@ class AppAuthHandler(private val config: ApplicationConfig, val context: Context
             .setAdditionalParameters(extraParams)
             .build()
 
-        return authorizationService.getAuthorizationRequestIntent(request)
+        return authService.getAuthorizationRequestIntent(request)
     }
 
     /*
@@ -158,7 +156,6 @@ class AppAuthHandler(private val config: ApplicationConfig, val context: Context
             val extraParams = mapOf("client_secret" to registrationResponse.clientSecret)
             val tokenRequest = authResponse.createTokenExchangeRequest(extraParams)
 
-            val authService = AuthorizationService(context)
             authService.performTokenRequest(tokenRequest) { tokenResponse, ex ->
 
                 when {
@@ -193,7 +190,6 @@ class AppAuthHandler(private val config: ApplicationConfig, val context: Context
                 .setAdditionalParameters(extraParams)
                 .build()
 
-            val authService = AuthorizationService(context)
             authService.performTokenRequest(tokenRequest) { tokenResponse, ex ->
 
                 when {
@@ -236,7 +232,7 @@ class AppAuthHandler(private val config: ApplicationConfig, val context: Context
             .setAdditionalParameters(extraParams)
             .build()
 
-        return authorizationService.getEndSessionRequestIntent(request)
+        return authService.getEndSessionRequestIntent(request)
     }
 
     /*

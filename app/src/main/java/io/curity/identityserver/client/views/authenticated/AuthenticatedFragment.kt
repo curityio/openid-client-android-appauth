@@ -29,6 +29,7 @@ import io.curity.identityserver.client.databinding.FragmentAuthenticatedBinding
 import io.curity.identityserver.client.views.MainActivity
 import io.curity.identityserver.client.views.MainActivityViewModel
 import io.curity.identityserver.client.views.error.ErrorFragmentViewModel
+import java.lang.ref.WeakReference
 
 class AuthenticatedFragment : androidx.fragment.app.Fragment(), AuthenticatedFragmentEvents {
 
@@ -50,7 +51,10 @@ class AuthenticatedFragment : androidx.fragment.app.Fragment(), AuthenticatedFra
         val errorViewModel: ErrorFragmentViewModel by viewModels()
 
         this.binding = FragmentAuthenticatedBinding.inflate(inflater, container, false)
-        this.binding.model = AuthenticatedFragmentViewModel(this, mainViewModel.appauth, errorViewModel)
+        this.binding.model = AuthenticatedFragmentViewModel(
+            WeakReference(this),
+            mainViewModel.appauth,
+            errorViewModel)
         return this.binding.root
     }
 
@@ -60,7 +64,7 @@ class AuthenticatedFragment : androidx.fragment.app.Fragment(), AuthenticatedFra
     }
 
     override fun startLogoutRedirect(intent: Intent) {
-        logoutLauncher.launch(intent)
+        this.logoutLauncher.launch(intent)
     }
 
     override fun onLoggedOut() {

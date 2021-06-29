@@ -16,6 +16,8 @@
 
 package io.curity.identityserver.client
 
+import android.content.Context
+import android.content.Context.MODE_PRIVATE
 import net.openid.appauth.AuthState
 import net.openid.appauth.AuthorizationServiceConfiguration
 import net.openid.appauth.RegistrationResponse
@@ -29,6 +31,29 @@ object ApplicationStateManager {
 
     private var authState: AuthState? = null
     var idToken: String? = null
+
+    fun load(context: Context) {
+
+        val prefs = context.getSharedPreferences("authState", MODE_PRIVATE)
+        val json = prefs.getString("json", null)
+        val idToken = prefs.getString("idToken", null)
+        if (json != null) {
+            this.authState = AuthState.jsonDeserialize(json)
+            this.idToken = idToken
+        }
+    }
+
+    fun save(context: Context) {
+
+        if (authState != null) {
+
+            val prefs = context.getSharedPreferences("authState", MODE_PRIVATE)
+            prefs.edit()
+                .putString("json", this.authState!!.jsonSerializeString())
+                .putString("idToken", this.idToken)
+                .apply()
+        }
+    }
 
     var metadata: AuthorizationServiceConfiguration?
         get () {

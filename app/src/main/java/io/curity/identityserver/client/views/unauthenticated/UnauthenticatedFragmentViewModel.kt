@@ -20,7 +20,6 @@ import android.content.Intent
 import androidx.databinding.BaseObservable
 import io.curity.identityserver.client.AppAuthHandler
 import io.curity.identityserver.client.ApplicationStateManager
-import io.curity.identityserver.client.configuration.ApplicationConfig
 import io.curity.identityserver.client.errors.ApplicationException
 import io.curity.identityserver.client.views.error.ErrorFragmentViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -30,9 +29,10 @@ import kotlinx.coroutines.withContext
 import net.openid.appauth.AuthorizationException
 import net.openid.appauth.AuthorizationResponse
 import net.openid.appauth.TokenResponse
+import java.lang.ref.WeakReference
 
 class UnauthenticatedFragmentViewModel(
-    private val events: UnauthenticatedFragmentEvents,
+    private val events: WeakReference<UnauthenticatedFragmentEvents>,
     private val appauth: AppAuthHandler,
     val error: ErrorFragmentViewModel) : BaseObservable() {
 
@@ -79,13 +79,13 @@ class UnauthenticatedFragmentViewModel(
      */
     fun startLogin() {
 
-        error.clearDetails()
+        this.error.clearDetails()
         val intent = appauth.getAuthorizationRedirectIntent(
             ApplicationStateManager.metadata!!,
             ApplicationStateManager.registrationResponse!!
         )
 
-        events.startLoginRedirect(intent)
+        this.events.get()?.startLoginRedirect(intent)
     }
 
     /*
@@ -114,7 +114,7 @@ class UnauthenticatedFragmentViewModel(
                     withContext(Dispatchers.Main) {
                         ApplicationStateManager.tokenResponse = tokenResponse
                         ApplicationStateManager.idToken = tokenResponse?.idToken
-                        events.onLoggedIn()
+                        events.get()?.onLoggedIn()
                     }
 
                 } catch (ex: ApplicationException) {

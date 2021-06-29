@@ -31,13 +31,13 @@ class ErrorFragmentViewModel : ViewModel(), Observable {
     fun setDetails(ex: ApplicationException) {
         this.title = ex.errorTitle
         this.description = ex.errorDescription ?: GENERIC_ERROR
-        callbacks.notifyCallbacks(this, 0, null)
+        this.callbacks.notifyCallbacks(this, 0, null)
     }
 
     fun clearDetails() {
         this.title = ""
         this.description = ""
-        callbacks.notifyCallbacks(this, 0, null)
+        this.callbacks.notifyCallbacks(this, 0, null)
     }
 
     fun hasDetails(): Boolean {
@@ -45,10 +45,10 @@ class ErrorFragmentViewModel : ViewModel(), Observable {
     }
 
     override fun addOnPropertyChangedCallback(callback: Observable.OnPropertyChangedCallback?) {
-        callbacks.add(callback)
+        this.callbacks.add(callback)
     }
 
     override fun removeOnPropertyChangedCallback(callback: Observable.OnPropertyChangedCallback?) {
-        callbacks.remove(callback)
+        this.callbacks.remove(callback)
     }
 }

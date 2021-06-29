@@ -19,14 +19,25 @@ package io.curity.identityserver.client.views
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import io.curity.identityserver.client.AppAuthHandler
+import io.curity.identityserver.client.ApplicationStateManager
 import io.curity.identityserver.client.configuration.ApplicationConfig
+import java.lang.ref.WeakReference
 
 class MainActivityViewModel() : ViewModel() {
 
+    lateinit var context: WeakReference<Context>
     lateinit var appauth: AppAuthHandler
 
-    fun initialize(context: Context) {
+    fun initialize(activity: WeakReference<Context>) {
+        this.context = activity
         val config = ApplicationConfig()
-        this.appauth = AppAuthHandler(config, context)
+        ApplicationStateManager.load(activity.get()!!)
+        this.appauth = AppAuthHandler(config, context.get()!!)
+    }
+
+    fun save() {
+        if (this.context.get() != null) {
+            ApplicationStateManager.save(this.context.get()!!)
+        }
     }
 }

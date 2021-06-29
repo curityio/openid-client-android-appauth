@@ -20,8 +20,6 @@ import android.content.Intent
 
 interface AuthenticatedFragmentEvents {
 
-    fun getString(id: Int): String
-
     fun startLogoutRedirect(intent: Intent)
 
     fun onLoggedOut()
