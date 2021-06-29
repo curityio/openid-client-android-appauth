@@ -63,8 +63,8 @@ class AuthenticatedFragment : androidx.fragment.app.Fragment(), AuthenticatedFra
         logoutLauncher.launch(intent)
     }
 
-    override fun onEndSession() {
+    override fun onLoggedOut() {
         val mainActivity = this.activity as MainActivity
-        mainActivity.onEndSessionNavigate()
+        mainActivity.onLoggedOutNavigate()
     }
 }

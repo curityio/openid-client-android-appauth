@@ -22,5 +22,5 @@ interface UnauthenticatedFragmentEvents {
 
     fun startLoginRedirect(intent: Intent)
 
-    fun onAuthenticated()
+    fun onLoggedIn()
 }

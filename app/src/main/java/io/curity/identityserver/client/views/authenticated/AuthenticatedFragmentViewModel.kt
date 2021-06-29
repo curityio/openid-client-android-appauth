@@ -22,7 +22,6 @@ import android.util.Log
 import androidx.databinding.BaseObservable
 import io.curity.identityserver.client.AppAuthHandler
 import io.curity.identityserver.client.ApplicationStateManager
-import io.curity.identityserver.client.configuration.ApplicationConfig
 import io.curity.identityserver.client.errors.ApplicationException
 import io.curity.identityserver.client.errors.InvalidIdTokenException
 import io.curity.identityserver.client.views.error.ErrorFragmentViewModel
@@ -31,6 +30,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.openid.appauth.AuthorizationException
+import net.openid.appauth.TokenResponse
 import org.jose4j.jwt.JwtClaims
 import org.jose4j.jwt.consumer.InvalidJwtException
 import org.jose4j.jwt.consumer.JwtConsumerBuilder
@@ -75,21 +75,25 @@ class AuthenticatedFragmentViewModel(
 
     fun refreshAccessToken() {
 
+        val metadata = ApplicationStateManager.metadata!!
+        val registrationResponse = ApplicationStateManager.registrationResponse!!
+        val refreshToken = ApplicationStateManager.tokenResponse!!.refreshToken!!
+        var tokenResponse: TokenResponse?
         error.clearDetails()
 
         CoroutineScope(Dispatchers.IO).launch {
 
             try {
 
-                val response = this@AuthenticatedFragmentViewModel.appauth.refreshAccessToken(
-                    ApplicationStateManager.metadata!!,
-                    ApplicationStateManager.registrationResponse!!,
+                tokenResponse = this@AuthenticatedFragmentViewModel.appauth.refreshAccessToken(
+                    metadata,
+                    registrationResponse,
                     refreshToken)
 
                 withContext(Dispatchers.Main) {
-                    ApplicationStateManager.tokenResponse = response
-                    if (response == null) {
-                        events.onEndSession()
+                    ApplicationStateManager.tokenResponse = tokenResponse
+                    if (tokenResponse == null) {
+                        events.onLoggedOut()
                     }
                     processTokens()
                 }
@@ -119,7 +123,7 @@ class AuthenticatedFragmentViewModel(
         try {
             appauth.handleEndSessionResponse(AuthorizationException.fromIntent(data))
             ApplicationStateManager.tokenResponse = null
-            events.onEndSession()
+            events.onLoggedOut()
 
         } catch (ex: ApplicationException) {
             error.setDetails(ex)

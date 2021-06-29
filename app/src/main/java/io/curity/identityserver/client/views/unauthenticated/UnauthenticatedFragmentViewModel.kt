@@ -29,6 +29,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.openid.appauth.AuthorizationException
 import net.openid.appauth.AuthorizationResponse
+import net.openid.appauth.TokenResponse
 
 class UnauthenticatedFragmentViewModel(
     private val events: UnauthenticatedFragmentEvents,
@@ -43,18 +44,23 @@ class UnauthenticatedFragmentViewModel(
      */
     fun registerIfRequired() {
 
+        var metadata = ApplicationStateManager.metadata
+        var registrationResponse = ApplicationStateManager.registrationResponse
+
         CoroutineScope(Dispatchers.IO).launch {
 
             try {
 
-                if (ApplicationStateManager.metadata == null) {
-                    ApplicationStateManager.metadata = appauth.fetchMetadata()
+                if (metadata == null) {
+                    metadata = appauth.fetchMetadata()
                 }
-                if (ApplicationStateManager.registrationResponse == null) {
-                    ApplicationStateManager.registrationResponse = appauth.registerClient(ApplicationStateManager.metadata!!)
+                if (registrationResponse == null) {
+                    registrationResponse = appauth.registerClient(metadata!!)
                 }
 
                 withContext(Dispatchers.Main) {
+                    ApplicationStateManager.metadata = metadata
+                    ApplicationStateManager.registrationResponse = registrationResponse
                     isRegistered = true
                     notifyChange()
                 }
@@ -94,18 +100,23 @@ class UnauthenticatedFragmentViewModel(
                 AuthorizationResponse.fromIntent(data),
                 AuthorizationException.fromIntent(data))
 
+            val registrationResponse = ApplicationStateManager.registrationResponse!!
+            var tokenResponse: TokenResponse?
+
             CoroutineScope(Dispatchers.IO).launch {
                 try {
 
-                    val tokenResponse = appauth.redeemCodeForTokens(
-                        ApplicationStateManager.registrationResponse!!,
+                    tokenResponse = appauth.redeemCodeForTokens(
+                        registrationResponse,
                         authorizationResponse
                     )
 
                     withContext(Dispatchers.Main) {
                         ApplicationStateManager.tokenResponse = tokenResponse
-                        events.onAuthenticated()
+                        ApplicationStateManager.idToken = tokenResponse?.idToken
+                        events.onLoggedIn()
                     }
+
                 } catch (ex: ApplicationException) {
 
                     withContext(Dispatchers.Main) {

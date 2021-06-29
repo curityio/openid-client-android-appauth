@@ -24,5 +24,5 @@ interface AuthenticatedFragmentEvents {
 
     fun startLogoutRedirect(intent: Intent)
 
-    fun onEndSession()
+    fun onLoggedOut()
 }

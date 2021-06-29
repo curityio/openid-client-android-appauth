@@ -63,8 +63,8 @@ class UnauthenticatedFragment : androidx.fragment.app.Fragment(), Unauthenticate
         loginLauncher.launch(intent)
     }
 
-    override fun onAuthenticated() {
+    override fun onLoggedIn() {
         val mainActivity = this.activity as MainActivity
-        mainActivity.onAuthenticatedNavigate()
+        mainActivity.onLoggedInNavigate()
     }
 }

@@ -39,12 +39,12 @@ class MainActivity : AppCompatActivity() {
         this.binding.model = model
     }
 
-    fun onAuthenticatedNavigate() {
+    fun onLoggedInNavigate() {
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         navHostFragment.navController.navigate(R.id.fragment_authenticated)
     }
 
-    fun onEndSessionNavigate() {
+    fun onLoggedOutNavigate() {
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         navHostFragment.navController.navigate(R.id.fragment_unauthenticated)
     }
