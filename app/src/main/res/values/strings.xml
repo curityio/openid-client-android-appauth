@@ -1,4 +1,5 @@
 <resources>
+    <string name="launch_icon_name">AppAuth</string>
     <string name="app_name">Curity AppAuth Demo App</string>
     <string name="welcome_text">Welcome to the Kotlin AppAuth demo</string>
     <string name="login_button">Start Authentication</string>
