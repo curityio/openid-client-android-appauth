@@ -64,7 +64,7 @@
             android:text="@{model.refreshToken}"
             style="@style/ValueStyle"/>
 
-        <com.google.android.material.button.MaterialButton
+        <Button
             android:id="@+id/refreshButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -74,7 +74,7 @@
             android:enabled="@{model.hasRefreshToken}"
             style="@style/ButtonStyle"/>
 
-        <com.google.android.material.button.MaterialButton
+        <Button
             android:id="@+id/logoutButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

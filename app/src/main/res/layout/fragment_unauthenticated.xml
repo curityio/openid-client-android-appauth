@@ -34,7 +34,7 @@
             android:src="@drawable/start_illustration"
             android:contentDescription="@string/welcome_text" />
 
-        <com.google.android.material.button.MaterialButton
+        <Button
             android:id="@+id/loginButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -42,8 +42,7 @@
             android:text="@string/login_button"
             android:onClick="@{() -> model.startLogin()}"
             android:enabled="@{model.isRegistered}"
-            style="@style/ButtonStyle"
-            />
+            style="@style/ButtonStyle" />
 
     </LinearLayout>
 </layout>
