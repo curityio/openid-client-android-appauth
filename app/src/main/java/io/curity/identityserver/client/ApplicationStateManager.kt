@@ -45,11 +45,14 @@ object ApplicationStateManager {
 
     fun save(context: Context) {
 
-        if (authState != null) {
+        if (authState?.lastRegistrationResponse != null) {
+
+            val authStateToSave = AuthState()
+            authStateToSave.update(this.authState!!.lastRegistrationResponse)
 
             val prefs = context.getSharedPreferences("authState", MODE_PRIVATE)
             prefs.edit()
-                .putString("json", this.authState!!.jsonSerializeString())
+                .putString("json", authStateToSave.jsonSerializeString())
                 .putString("idToken", this.idToken)
                 .apply()
         }
