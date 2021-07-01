@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/fragment_unauthenticated">
+
+    <fragment
+        android:id="@+id/fragment_unauthenticated"
+        android:name="io.curity.identityserver.client.views.unauthenticated.UnauthenticatedFragment"
+        tools:layout="@layout/fragment_unauthenticated">
+    </fragment>
+    <fragment
+        android:id="@+id/fragment_authenticated"
+        android:name="io.curity.identityserver.client.views.authenticated.AuthenticatedFragment"
+        tools:layout="@layout/fragment_authenticated">
+    </fragment>
+</navigation>

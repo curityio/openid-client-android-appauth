@@ -1,5 +1,5 @@
 /*
- *  Copyright 2020 Curity AB
+ *  Copyright 2021 Curity AB
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,26 +14,16 @@
  *  limitations under the License.
  */
 
-buildscript {
-    ext.kotlin_version = '1.5.10'
-    repositories {
-        google()
-        mavenCentral()
+package io.curity.identityserver.client.configuration
 
-    }
-    dependencies {
-        classpath 'com.android.tools.build:gradle:4.2.1'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-    }
-}
+import android.net.Uri
 
-allprojects {
-    repositories {
-        google()
-        mavenCentral()
-    }
-}
-
-task clean(type: Delete) {
-    delete rootProject.buildDir
+/*
+ * The fixed OAuth configuration that is sent in a dynamic client registration request
+ */
+class ApplicationConfig {
+    val issuer: Uri = Uri.parse("https://login.example.com/oauth/v2/oauth-anonymous")
+    val redirectUri: Uri = Uri.parse("io.curity.client:/callback")
+    val postLogoutRedirectUri: Uri = Uri.parse("io.curity.client:/logoutcallback")
+    val scope = "openid profile"
 }

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools">
+    <data>
+        <import type="android.view.View"/>
+        <variable name="model" type="io.curity.identityserver.client.views.authenticated.AuthenticatedFragmentViewModel" />
+    </data>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/fragment_authenticated_error"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:name="io.curity.identityserver.client.views.error.ErrorFragment"
+            android:visibility="@{model.error.hasDetails() ? View.VISIBLE : View.GONE}"
+            tools:layout="@layout/fragment_error">
+        </androidx.fragment.app.FragmentContainerView>
+
+        <TextView
+            android:id="@+id/subject_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="@string/subject"
+            style="@style/LabelStyle" />
+
+        <TextView
+            android:id="@+id/subject_value"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@{model.subject}"
+            style="@style/ValueStyle"/>
+
+        <TextView
+            android:id="@+id/access_token_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="@string/access_token"
+            style="@style/LabelStyle"/>
+
+        <TextView
+            android:id="@+id/access_token_value"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@{model.accessToken}"
+            style="@style/ValueStyle"/>
+
+        <TextView
+            android:id="@+id/refresh_token_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="@string/refresh_token"
+            style="@style/LabelStyle" />
+
+        <TextView
+            android:id="@+id/refresh_token_value"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@{model.refreshToken}"
+            style="@style/ValueStyle"/>
+
+        <Button
+            android:id="@+id/refreshButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="@string/refresh_button"
+            android:onClick="@{() -> model.refreshAccessToken()}"
+            android:enabled="@{model.hasRefreshToken}"
+            style="@style/ButtonStyle"/>
+
+        <Button
+            android:id="@+id/logoutButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="@string/logout_button"
+            android:onClick="@{() -> model.startLogout()}"
+            android:enabled="@{model.hasIdToken}"
+            style="@style/ButtonStyle"/>
+
+    </LinearLayout>
+</layout>

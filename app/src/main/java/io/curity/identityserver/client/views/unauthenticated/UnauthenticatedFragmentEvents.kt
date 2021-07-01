@@ -1,5 +1,5 @@
 /*
- *  Copyright 2020 Curity AB
+ *  Copyright 2021 Curity AB
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,26 +14,13 @@
  *  limitations under the License.
  */
 
-buildscript {
-    ext.kotlin_version = '1.5.10'
-    repositories {
-        google()
-        mavenCentral()
+package io.curity.identityserver.client.views.unauthenticated
 
-    }
-    dependencies {
-        classpath 'com.android.tools.build:gradle:4.2.1'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-    }
-}
+import android.content.Intent
 
-allprojects {
-    repositories {
-        google()
-        mavenCentral()
-    }
-}
+interface UnauthenticatedFragmentEvents {
 
-task clean(type: Delete) {
-    delete rootProject.buildDir
+    fun startLoginRedirect(intent: Intent)
+
+    fun onLoggedIn()
 }

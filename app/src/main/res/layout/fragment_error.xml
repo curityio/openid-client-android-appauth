@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+    <data>
+        <variable name="model" type="io.curity.identityserver.client.views.error.ErrorFragmentViewModel" />
+    </data>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <TextView
+            android:id="@+id/error"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="@{model.title}"
+            style="@style/LabelStyle" />
+        <TextView
+            android:id="@+id/errorDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@{model.description}"
+            android:textColor="@color/colorRed"
+            style="@style/ErrorValueStyle"/>
+    </LinearLayout>
+
+</layout>
