@@ -54,7 +54,7 @@ AppAuth classes are used to perform the following security related operations ac
 
 ## Teardown
 
-Run the following commands to free Docker resources:
+Run the following command to free Docker resources:
 
 ```bash
 ./stop-idsvr.sh
