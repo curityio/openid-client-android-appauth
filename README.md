@@ -13,7 +13,7 @@ The [Tutorial Walkthrough](https://curity.io/resources/learn/kotlin-android-appa
 
 - Sign in to the [Curity Developer Portal](https://developer.curity.io/) with your Github account.
 - You can get a [Free Community Edition License](https://curity.io/product/community/) if you are new to the Curity Identity Server.
-- Then copy your `license.json` file into the `idsvr` folder.
+- Then copy your `license.json` file into the root folder.
 - Also ensure that Docker Desktop and [ngrok](https://ngrok.com/docs) are installed.
 
 ## Quick Start
@@ -22,11 +22,11 @@ Deploy the Curity Identity Server via Docker with settings preconfigured for mob
 An ngrok tunnel enables mobile connectivity to the Identity Server's endpoints.
 
 ```bash
-./deploy.sh
+./start-idsvr.sh
 ```
 
-In Android Studio 2020.3 or later run the app by opening the `android` folder.\
-Sign in as the following preconfigured test user account:
+In Android Studio run the app by opening the root folder.\
+When prompted to sign in, do so as the following preconfigured user account:
 
 - User: `demouser`
 - Password: `Password1`
@@ -57,8 +57,7 @@ AppAuth classes are used to perform the following security related operations ac
 Run the following commands to free Docker resources:
 
 ```bash
-cd idsvr
-docker compose down
+./stop-idsvr.sh
 ```
 
 ## More Information
