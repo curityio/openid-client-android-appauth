@@ -5,29 +5,61 @@
 
 Demonstrates how to implement an OpenID Connect mobile client using AppAuth libraries.
 
-## Overview
+## Code Example Article
 
-A simple mobile app that demonstrates OAuth lifecycle events, starting with an `Unauthenticated View`:
+The [Tutorial Walkthrough](https://curity.io/resources/learn/kotlin-android-appauth) explains the complete configuration and behavior.
 
-![Unauthenticated View](doc/android-unauthenticated-view.png)
+### Prerequisites
+
+- Sign in to the [Curity Developer Portal](https://developer.curity.io/) with your Github account.
+- You can get a [Free Community Edition License](https://curity.io/product/community/) if you are new to the Curity Identity Server.
+- Then copy your `license.json` file into the `idsvr` folder.
+- Also ensure that Docker Desktop and [ngrok](https://ngrok.com/docs) are installed.
+
+## Quick Start
+
+Deploy the Curity Identity Server via Docker with settings preconfigured for mobile OAuth.\
+An ngrok tunnel enables mobile connectivity to the Identity Server's endpoints.
+
+```bash
+./deploy.sh
+```
+
+In Android Studio 2020.3 or later run the app by opening the `android` folder.\
+Sign in as the following preconfigured test user account:
+
+- User: `demouser`
+- Password: `Password1`
+
+## User Experience
+
+The example mobile app demonstrates OAuth lifecycle events, starting with an `Unauthenticated View`:
+
+![Unauthenticated View](images/android-unauthenticated-view.png)
 
 Once authenticated the `Authenticated View` show how to work with tokens and sign out:
 
-![Authenticated View](doc/android-authenticated-view.png)
+![Authenticated View](images/android-authenticated-view.png)
 
 The example app also demonstrates reliable handling of AppAuth errors.
 
 ## Security
 
-AppAuth classes are used to perform the following security related operations:
+AppAuth classes are used to perform the following security related operations accordng to [RFC8252](https://datatracker.ietf.org/doc/html/rfc8252):
 
-* Dynamic Client Registration
-* Logins and Logouts via a Chrome Custom Tab
-* Working with Access Tokens and Token Refresh
+* Logins and Logouts via a secure ASWebAuthenticationSession window
+* Use of Authorization Code Flow (PKCE)
 
-## Tutorial
+![Secure Window](images/secure-login-window.png)
 
-See the [Curity Android AppAuth Article](https://curity.io/resources/learn/kotlin-android-appauth/) for full details on how to run the app.
+## Teardown
+
+Run the following commands to free Docker resources:
+
+```bash
+cd idsvr
+docker compose down
+```
 
 ## More Information
 

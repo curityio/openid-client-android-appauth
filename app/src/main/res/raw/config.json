@@ -1,0 +1,7 @@
+{
+  "issuer": "https://d2ff03fc8944.eu.ngrok.io/oauth/v2/oauth-anonymous",
+  "clientID": "mobile-client",
+  "redirectUri": "io.curity.client:/callback",
+  "postLogoutRedirectUri": "io.curity.client:/logoutcallback",
+  "scope": "openid profile"
+}

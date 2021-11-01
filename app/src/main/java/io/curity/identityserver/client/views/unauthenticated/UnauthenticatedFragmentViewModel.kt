@@ -18,10 +18,6 @@ package io.curity.identityserver.client.views.unauthenticated;
 
 import android.content.Intent
 import androidx.databinding.BaseObservable
-import io.curity.identityserver.client.AppAuthHandler
-import io.curity.identityserver.client.ApplicationStateManager
-import io.curity.identityserver.client.errors.ApplicationException
-import io.curity.identityserver.client.views.error.ErrorFragmentViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -29,40 +25,40 @@ import kotlinx.coroutines.withContext
 import net.openid.appauth.AuthorizationException
 import net.openid.appauth.AuthorizationResponse
 import net.openid.appauth.TokenResponse
-import java.lang.ref.WeakReference
+import io.curity.identityserver.client.AppAuthHandler
+import io.curity.identityserver.client.ApplicationStateManager
+import io.curity.identityserver.client.errors.ApplicationException
+import io.curity.identityserver.client.views.error.ErrorFragmentViewModel
 
 class UnauthenticatedFragmentViewModel(
-    private val events: WeakReference<UnauthenticatedFragmentEvents>,
+    private val events: UnauthenticatedFragmentEvents,
+    private val state: ApplicationStateManager,
     private val appauth: AppAuthHandler,
     val error: ErrorFragmentViewModel) : BaseObservable() {
 
-    var isRegistered = false
-
     /*
-     * Startup handling to lookup metadata and do the dynamic client registration if required
-     * Make HTTP requests on a worker thread and then perform updates on the UI thread
+     * Build the authorization redirect URL and then ask the view to redirect
      */
-    fun registerIfRequired() {
+    fun startLogin() {
 
-        var metadata = ApplicationStateManager.metadata
-        var registrationResponse = ApplicationStateManager.registrationResponse
+        this.error.clearDetails()
+        var metadata = this.state.metadata
 
+        val that = this@UnauthenticatedFragmentViewModel
         CoroutineScope(Dispatchers.IO).launch {
-
             try {
 
+                // Look up metadata on a worker thread
                 if (metadata == null) {
                     metadata = appauth.fetchMetadata()
                 }
-                if (registrationResponse == null) {
-                    registrationResponse = appauth.registerClient(metadata!!)
-                }
 
+                // Switch back to the UI thread for the redirect
                 withContext(Dispatchers.Main) {
-                    ApplicationStateManager.metadata = metadata
-                    ApplicationStateManager.registrationResponse = registrationResponse
-                    isRegistered = true
-                    notifyChange()
+
+                    that.state.metadata = metadata
+                    val intent = appauth.getAuthorizationRedirectIntent(metadata!!)
+                    that.events.startLoginRedirect(intent)
                 }
 
             } catch (ex: ApplicationException) {
@@ -72,20 +68,6 @@ class UnauthenticatedFragmentViewModel(
                 }
             }
         }
-    }
-
-    /*
-     * Build the authorization redirect URL and then ask the view to redirect
-     */
-    fun startLogin() {
-
-        this.error.clearDetails()
-        val intent = appauth.getAuthorizationRedirectIntent(
-            ApplicationStateManager.metadata!!,
-            ApplicationStateManager.registrationResponse!!
-        )
-
-        this.events.get()?.startLoginRedirect(intent)
     }
 
     /*
@@ -100,21 +82,16 @@ class UnauthenticatedFragmentViewModel(
                 AuthorizationResponse.fromIntent(data),
                 AuthorizationException.fromIntent(data))
 
-            val registrationResponse = ApplicationStateManager.registrationResponse!!
             var tokenResponse: TokenResponse?
-
+            val that = this@UnauthenticatedFragmentViewModel
             CoroutineScope(Dispatchers.IO).launch {
                 try {
 
-                    tokenResponse = appauth.redeemCodeForTokens(
-                        registrationResponse,
-                        authorizationResponse
-                    )
+                    tokenResponse = appauth.redeemCodeForTokens(authorizationResponse)
 
                     withContext(Dispatchers.Main) {
-                        ApplicationStateManager.tokenResponse = tokenResponse
-                        ApplicationStateManager.idToken = tokenResponse?.idToken
-                        events.get()?.onLoggedIn()
+                        that.state.saveTokens(tokenResponse!!)
+                        events.onLoggedIn()
                     }
 
                 } catch (ex: ApplicationException) {

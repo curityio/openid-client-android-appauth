@@ -16,28 +16,20 @@
 
 package io.curity.identityserver.client.views
 
-import android.content.Context
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import io.curity.identityserver.client.AppAuthHandler
 import io.curity.identityserver.client.ApplicationStateManager
 import io.curity.identityserver.client.configuration.ApplicationConfig
-import java.lang.ref.WeakReference
+import io.curity.identityserver.client.configuration.ApplicationConfigLoader
 
-class MainActivityViewModel() : ViewModel() {
+class MainActivityViewModel(app: Application) : AndroidViewModel(app) {
 
-    lateinit var context: WeakReference<Context>
-    lateinit var appauth: AppAuthHandler
+    val config: ApplicationConfig = ApplicationConfigLoader().load(app.applicationContext)
+    val state: ApplicationStateManager = ApplicationStateManager()
+    val appauth: AppAuthHandler = AppAuthHandler(this.config, app.applicationContext)
 
-    fun initialize(activity: WeakReference<Context>) {
-        this.context = activity
-        val config = ApplicationConfig()
-        ApplicationStateManager.load(activity.get()!!)
-        this.appauth = AppAuthHandler(config, context.get()!!)
-    }
-
-    fun save() {
-        if (this.context.get() != null) {
-            ApplicationStateManager.save(this.context.get()!!)
-        }
+    fun dispose() {
+        this.appauth.dispose()
     }
 }

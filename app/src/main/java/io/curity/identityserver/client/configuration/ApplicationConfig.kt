@@ -19,11 +19,24 @@ package io.curity.identityserver.client.configuration
 import android.net.Uri
 
 /*
- * The fixed OAuth configuration that is sent in a dynamic client registration request
+ * Standard mobile OAuth configuration settings
  */
 class ApplicationConfig {
-    val issuer: Uri = Uri.parse("https://login.example.com/oauth/v2/oauth-anonymous")
-    val redirectUri: Uri = Uri.parse("io.curity.client:/callback")
-    val postLogoutRedirectUri: Uri = Uri.parse("io.curity.client:/logoutcallback")
-    val scope = "openid profile"
+    lateinit var issuer: String
+    lateinit var clientID: String
+    lateinit var redirectUri: String
+    lateinit var postLogoutRedirectUri: String
+    lateinit var scope: String
+
+    fun getIssuerUri(): Uri {
+        return Uri.parse(issuer)
+    }
+
+    fun getRedirectUri(): Uri {
+        return Uri.parse(redirectUri)
+    }
+
+    fun getPostLogoutRedirectUri(): Uri {
+        return Uri.parse(postLogoutRedirectUri)
+    }
 }

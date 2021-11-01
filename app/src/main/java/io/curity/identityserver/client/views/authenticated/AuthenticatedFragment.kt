@@ -29,7 +29,6 @@ import io.curity.identityserver.client.databinding.FragmentAuthenticatedBinding
 import io.curity.identityserver.client.views.MainActivity
 import io.curity.identityserver.client.views.MainActivityViewModel
 import io.curity.identityserver.client.views.error.ErrorFragmentViewModel
-import java.lang.ref.WeakReference
 
 class AuthenticatedFragment : androidx.fragment.app.Fragment(), AuthenticatedFragmentEvents {
 
@@ -52,7 +51,9 @@ class AuthenticatedFragment : androidx.fragment.app.Fragment(), AuthenticatedFra
 
         this.binding = FragmentAuthenticatedBinding.inflate(inflater, container, false)
         this.binding.model = AuthenticatedFragmentViewModel(
-            WeakReference(this),
+            this,
+            mainViewModel.config,
+            mainViewModel.state,
             mainViewModel.appauth,
             errorViewModel)
         return this.binding.root

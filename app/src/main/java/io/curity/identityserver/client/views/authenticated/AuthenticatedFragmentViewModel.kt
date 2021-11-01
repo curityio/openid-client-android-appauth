@@ -20,11 +20,6 @@ import android.content.ContentValues
 import android.content.Intent
 import android.util.Log
 import androidx.databinding.BaseObservable
-import io.curity.identityserver.client.AppAuthHandler
-import io.curity.identityserver.client.ApplicationStateManager
-import io.curity.identityserver.client.errors.ApplicationException
-import io.curity.identityserver.client.errors.InvalidIdTokenException
-import io.curity.identityserver.client.views.error.ErrorFragmentViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -34,17 +29,23 @@ import net.openid.appauth.TokenResponse
 import org.jose4j.jwt.JwtClaims
 import org.jose4j.jwt.consumer.InvalidJwtException
 import org.jose4j.jwt.consumer.JwtConsumerBuilder
-import java.lang.ref.WeakReference
+import io.curity.identityserver.client.AppAuthHandler
+import io.curity.identityserver.client.ApplicationStateManager
+import io.curity.identityserver.client.configuration.ApplicationConfig
+import io.curity.identityserver.client.errors.ApplicationException
+import io.curity.identityserver.client.errors.InvalidIdTokenException
+import io.curity.identityserver.client.views.error.ErrorFragmentViewModel
 
 class AuthenticatedFragmentViewModel(
-    private val events: WeakReference<AuthenticatedFragmentEvents>,
+    private val events: AuthenticatedFragmentEvents,
+    private val config: ApplicationConfig,
+    private val state: ApplicationStateManager,
     private val appauth: AppAuthHandler,
     val error: ErrorFragmentViewModel) : BaseObservable() {
 
     var subject: String = ""
     var accessToken: String = ""
     var refreshToken: String = ""
-
     var hasRefreshToken = false
     var hasIdToken = false
 
@@ -52,18 +53,18 @@ class AuthenticatedFragmentViewModel(
 
         try {
 
-            if (ApplicationStateManager.tokenResponse?.accessToken != null) {
-                this.accessToken = ApplicationStateManager.tokenResponse?.accessToken!!
+            if (this.state.tokenResponse?.accessToken != null) {
+                this.accessToken = this.state.tokenResponse?.accessToken!!
             }
 
-            if (ApplicationStateManager.tokenResponse?.refreshToken != null) {
-                this.refreshToken = ApplicationStateManager.tokenResponse?.refreshToken!!
+            if (this.state.tokenResponse?.refreshToken != null) {
+                this.refreshToken = this.state.tokenResponse?.refreshToken!!
                 this.hasRefreshToken = true
             }
 
-            if (ApplicationStateManager.tokenResponse?.idToken != null) {
+            if (this.state.tokenResponse?.idToken != null) {
                 this.hasIdToken = true
-                val jwtClaims = readIdTokenClaims(ApplicationStateManager.tokenResponse?.idToken!!)
+                val jwtClaims = readIdTokenClaims(this.state.tokenResponse?.idToken!!)
                 this.subject = jwtClaims.subject
             }
 
@@ -76,27 +77,29 @@ class AuthenticatedFragmentViewModel(
 
     fun refreshAccessToken() {
 
-        val metadata = ApplicationStateManager.metadata!!
-        val registrationResponse = ApplicationStateManager.registrationResponse!!
-        val refreshToken = ApplicationStateManager.tokenResponse!!.refreshToken!!
+        val metadata = this.state.metadata!!
+        val refreshToken = this.state.tokenResponse!!.refreshToken!!
         var tokenResponse: TokenResponse?
         this.error.clearDetails()
 
+        val that = this@AuthenticatedFragmentViewModel
         CoroutineScope(Dispatchers.IO).launch {
 
             try {
 
                 tokenResponse = this@AuthenticatedFragmentViewModel.appauth.refreshAccessToken(
                     metadata,
-                    registrationResponse,
                     refreshToken)
 
                 withContext(Dispatchers.Main) {
-                    ApplicationStateManager.tokenResponse = tokenResponse
-                    if (tokenResponse == null) {
-                        events.get()?.onLoggedOut()
+
+                    if(tokenResponse != null) {
+                        that.state.saveTokens(tokenResponse!!)
+                        that.processTokens()
+                    } else {
+                        that.state.clearTokens()
+                        events.onLoggedOut()
                     }
-                    processTokens()
                 }
 
             } catch (ex: ApplicationException) {
@@ -112,19 +115,18 @@ class AuthenticatedFragmentViewModel(
 
         this.error.clearDetails()
         val intent = appauth.getEndSessionRedirectIntent(
-            ApplicationStateManager.metadata!!,
-            ApplicationStateManager.registrationResponse!!,
-            ApplicationStateManager.idToken)
+            this.state.metadata!!,
+            this.state.idToken)
 
-        this.events.get()?.startLogoutRedirect(intent)
+        this.events.startLogoutRedirect(intent)
     }
 
     fun endLogout(data: Intent) {
 
         try {
             this.appauth.handleEndSessionResponse(AuthorizationException.fromIntent(data))
-            ApplicationStateManager.tokenResponse = null
-            this.events.get()?.onLoggedOut()
+            this.state.clearTokens()
+            this.events.onLoggedOut()
 
         } catch (ex: ApplicationException) {
             this.error.setDetails(ex)
@@ -137,8 +139,8 @@ class AuthenticatedFragmentViewModel(
             .setSkipSignatureVerification()
             .setRequireSubject()
             .setAllowedClockSkewInSeconds(30)
-            .setExpectedIssuer(ApplicationStateManager.metadata?.discoveryDoc?.issuer)
-            .setExpectedAudience(ApplicationStateManager.registrationResponse?.clientId)
+            .setExpectedIssuer(this.state.metadata?.discoveryDoc?.issuer)
+            .setExpectedAudience(this.config.clientID)
             .build()
 
         try {
