@@ -18,6 +18,7 @@ package io.curity.identityserver.client.views.unauthenticated;
 
 import android.content.Intent
 import androidx.databinding.BaseObservable
+import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -29,12 +30,16 @@ import io.curity.identityserver.client.AppAuthHandler
 import io.curity.identityserver.client.ApplicationStateManager
 import io.curity.identityserver.client.errors.ApplicationException
 import io.curity.identityserver.client.views.error.ErrorFragmentViewModel
+import io.curity.identityserver.client.views.events.Event
 
 class UnauthenticatedFragmentViewModel(
-    private val events: UnauthenticatedFragmentEvents,
     private val state: ApplicationStateManager,
     private val appauth: AppAuthHandler,
     val error: ErrorFragmentViewModel) : BaseObservable() {
+
+    // Properties used to publish events back to the view
+    var loginStarted = MutableLiveData<Event<Intent>>()
+    var loginCompleted = MutableLiveData<Event<Boolean>>()
 
     /*
      * Build the authorization redirect URL and then ask the view to redirect
@@ -58,7 +63,7 @@ class UnauthenticatedFragmentViewModel(
 
                     that.state.metadata = metadata
                     val intent = appauth.getAuthorizationRedirectIntent(metadata!!)
-                    that.events.startLoginRedirect(intent)
+                    that.loginStarted.postValue(Event(intent))
                 }
 
             } catch (ex: ApplicationException) {
@@ -91,7 +96,7 @@ class UnauthenticatedFragmentViewModel(
 
                     withContext(Dispatchers.Main) {
                         that.state.saveTokens(tokenResponse!!)
-                        events.onLoggedIn()
+                        that.loginCompleted.postValue(Event(true))
                     }
 
                 } catch (ex: ApplicationException) {
