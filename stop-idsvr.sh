@@ -3,4 +3,6 @@
 #########################################
 # Free deployment resources when required
 #########################################
-./deployment/appauth/stop.sh
+
+USE_NGROK=true
+./deployment/stop.sh "$USE_NGROK" 'appauth'
