@@ -1,15 +1,19 @@
 #!/bin/bash
 
-#####################################################################################
-# Provide a working OAuth setup between the mobile app and the Curity Identity Server
-#####################################################################################
+####################################################################################################
+# Run the Curity Identity Server in Docker on the local computer, preconfigured for the code example
+# Please ensure that the following resources are installed before running this script:
+# - Docker Desktop
+# - ngrok
+# - The jq tool (brew install jq)
+####################################################################################################
 
 #
-# By default the Curity Identity Server will use a dynamic NGROK URL
-# Set USE_NGROK to false if you want to use a localhost or IP address based URL instead
+# By default the Curity Identity Server will use a dynamic NGROK base URL
+# Set USE_NGROK to false and provide an IP address based URL otherwise
 #
 USE_NGROK=true
-BASE_URL=http://192.168.0.2:8443
+BASE_URL=http://10.0.2.2:8443
 
 #
 # First check prerequisites

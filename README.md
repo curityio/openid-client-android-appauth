@@ -5,31 +5,20 @@
 
 Demonstrates how to implement an OpenID Connect mobile client using AppAuth libraries.
 
-## Code Example Article
+## Tutorial Documentation
 
 The [Tutorial Walkthrough](https://curity.io/resources/learn/kotlin-android-appauth) explains the complete configuration and behavior.
 
-### Prerequisites
+### Quick Start
 
-- Sign in to the [Curity Developer Portal](https://developer.curity.io/) with your Github account.
-- You can get a [Free Community Edition License](https://curity.io/product/community/) if you are new to the Curity Identity Server.
-- Then copy your `license.json` file into the root folder.
-- Also ensure that Docker Desktop and [ngrok](https://ngrok.com/docs) are installed.
+The easiest way to run the code example is via an automated script as explained in the [Mobile Setup Article](https://curity.io/resources/learn/mobile-setup-ngrok):
 
-## Quick Start
-
-Deploy the Curity Identity Server via Docker with settings preconfigured for mobile OAuth.\
-An ngrok tunnel enables mobile connectivity to the Identity Server's endpoints.
-
-```bash
-./start-idsvr.sh
-```
-
-In Android Studio run the app by opening the root folder.\
-When prompted to sign in, do so as the following preconfigured user account:
-
-- User: `demouser`
-- Password: `Password1`
+- Copy a license.json file into the code example root folder
+- Edit the `./start-idsvr.sh` script to use either a local Docker URL on an ngrok internet URL
+- Run the script to deploy a preconfigured Curity Identity Server via Docker
+- Build and run the mobile app from Android Studio
+- Sign in with the preconfigured user account `demouser / Password1`
+- Run `./stop-idsvr.sh` when you want to free Docker resources
 
 ## User Experience
 
@@ -51,14 +40,6 @@ AppAuth classes are used to perform the following security related operations ac
 * Use of Authorization Code Flow (PKCE)
 
 ![Secure Window](images/secure-login-window.png)
-
-## Teardown
-
-Run the following command to free Docker resources:
-
-```bash
-./stop-idsvr.sh
-```
 
 ## More Information
 
