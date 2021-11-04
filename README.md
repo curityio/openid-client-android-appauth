@@ -9,7 +9,7 @@ Demonstrates how to implement an OpenID Connect mobile client using AppAuth libr
 
 The [Tutorial Walkthrough](https://curity.io/resources/learn/kotlin-android-appauth) explains the complete configuration and behavior.
 
-### Quick Start
+## Quick Start
 
 The easiest way to run the code example is via an automated script as explained in the [Mobile Setup Article](https://curity.io/resources/learn/mobile-setup-ngrok):
 
