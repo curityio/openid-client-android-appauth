@@ -25,7 +25,6 @@ import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
 import io.curity.identityserver.client.databinding.FragmentAuthenticatedBinding
 import io.curity.identityserver.client.views.MainActivity
 import io.curity.identityserver.client.views.MainActivityViewModel
@@ -53,12 +52,12 @@ class AuthenticatedFragment : androidx.fragment.app.Fragment() {
         val viewModel = mainViewModel.getAuthenticatedViewModel(errorViewModel)
 
         // Handle events sent from the view model
-        viewModel.logoutStarted.observe(this, Observer { event ->
+        viewModel.logoutStarted.observe(this, { event ->
             event?.getData()?.let {
                 startLogoutRedirect(it)
             }
         })
-        viewModel.logoutCompleted.observe(this, Observer { event ->
+        viewModel.logoutCompleted.observe(this, { event ->
             event?.getData()?.let {
                 onLoggedOut()
             }
