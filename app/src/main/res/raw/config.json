@@ -1,0 +1,7 @@
+{
+  "issuer": "https://login.example.com/oauth/v2/oauth-anonymous",
+  "clientID": "mobile-client",
+  "redirectUri": "io.curity.client:/callback",
+  "postLogoutRedirectUri": "io.curity.client:/logoutcallback",
+  "scope": "openid profile"
+}

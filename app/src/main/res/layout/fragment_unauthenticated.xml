@@ -41,7 +41,6 @@
             android:layout_marginTop="20dp"
             android:text="@string/login_button"
             android:onClick="@{() -> model.startLogin()}"
-            android:enabled="@{model.isRegistered}"
             style="@style/ButtonStyle" />
 
     </LinearLayout>

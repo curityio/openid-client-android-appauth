@@ -29,9 +29,8 @@ import io.curity.identityserver.client.databinding.FragmentAuthenticatedBinding
 import io.curity.identityserver.client.views.MainActivity
 import io.curity.identityserver.client.views.MainActivityViewModel
 import io.curity.identityserver.client.views.error.ErrorFragmentViewModel
-import java.lang.ref.WeakReference
 
-class AuthenticatedFragment : androidx.fragment.app.Fragment(), AuthenticatedFragmentEvents {
+class AuthenticatedFragment : androidx.fragment.app.Fragment() {
 
     private lateinit var binding: FragmentAuthenticatedBinding
 
@@ -47,14 +46,26 @@ class AuthenticatedFragment : androidx.fragment.app.Fragment(), AuthenticatedFra
         savedInstanceState: Bundle?
     ): View {
 
+        // Create the view model the first time the view is created
         val mainViewModel: MainActivityViewModel by activityViewModels()
         val errorViewModel: ErrorFragmentViewModel by viewModels()
+        val viewModel = mainViewModel.getAuthenticatedViewModel(errorViewModel)
 
+        // Handle events sent from the view model
+        viewModel.logoutStarted.observe(this, { event ->
+            event?.getData()?.let {
+                startLogoutRedirect(it)
+            }
+        })
+        viewModel.logoutCompleted.observe(this, { event ->
+            event?.getData()?.let {
+                onLoggedOut()
+            }
+        })
+
+        // Complete the view setup
         this.binding = FragmentAuthenticatedBinding.inflate(inflater, container, false)
-        this.binding.model = AuthenticatedFragmentViewModel(
-            WeakReference(this),
-            mainViewModel.appauth,
-            errorViewModel)
+        this.binding.model = viewModel
         return this.binding.root
     }
 
@@ -63,11 +74,11 @@ class AuthenticatedFragment : androidx.fragment.app.Fragment(), AuthenticatedFra
         this.binding.model!!.processTokens()
     }
 
-    override fun startLogoutRedirect(intent: Intent) {
+    private fun startLogoutRedirect(intent: Intent) {
         this.logoutLauncher.launch(intent)
     }
 
-    override fun onLoggedOut() {
+    private fun onLoggedOut() {
         val mainActivity = this.activity as MainActivity
         mainActivity.onLoggedOutNavigate()
     }

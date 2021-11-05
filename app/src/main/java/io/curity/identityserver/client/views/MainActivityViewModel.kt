@@ -16,28 +16,58 @@
 
 package io.curity.identityserver.client.views
 
-import android.content.Context
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import io.curity.identityserver.client.AppAuthHandler
 import io.curity.identityserver.client.ApplicationStateManager
 import io.curity.identityserver.client.configuration.ApplicationConfig
-import java.lang.ref.WeakReference
+import io.curity.identityserver.client.configuration.ApplicationConfigLoader
+import io.curity.identityserver.client.views.authenticated.AuthenticatedFragmentViewModel
+import io.curity.identityserver.client.views.error.ErrorFragmentViewModel
+import io.curity.identityserver.client.views.unauthenticated.UnauthenticatedFragmentViewModel
 
-class MainActivityViewModel() : ViewModel() {
+class MainActivityViewModel(app: Application) : AndroidViewModel(app) {
 
-    lateinit var context: WeakReference<Context>
-    lateinit var appauth: AppAuthHandler
+    // Global objects
+    private val config: ApplicationConfig = ApplicationConfigLoader().load(app.applicationContext)
+    private val state: ApplicationStateManager = ApplicationStateManager()
+    private val appauth: AppAuthHandler = AppAuthHandler(this.config, app.applicationContext)
 
-    fun initialize(activity: WeakReference<Context>) {
-        this.context = activity
-        val config = ApplicationConfig()
-        ApplicationStateManager.load(activity.get()!!)
-        this.appauth = AppAuthHandler(config, context.get()!!)
+    // Child view models
+    private var unauthenticatedViewModel: UnauthenticatedFragmentViewModel? = null
+    private var authenticatedViewModel:   AuthenticatedFragmentViewModel? = null
+
+    /*
+     * Create child view models the first time
+     */
+    fun getUnauthenticatedViewModel(errorViewModel: ErrorFragmentViewModel): UnauthenticatedFragmentViewModel {
+
+        if (this.unauthenticatedViewModel == null) {
+            this.unauthenticatedViewModel = UnauthenticatedFragmentViewModel(
+                this.state,
+                this.appauth,
+                errorViewModel
+            )
+        }
+
+        return this.unauthenticatedViewModel!!
     }
 
-    fun save() {
-        if (this.context.get() != null) {
-            ApplicationStateManager.save(this.context.get()!!)
+    fun getAuthenticatedViewModel(errorViewModel: ErrorFragmentViewModel): AuthenticatedFragmentViewModel {
+
+        if (this.authenticatedViewModel == null) {
+            this.authenticatedViewModel = AuthenticatedFragmentViewModel(
+                this.config,
+                this.state,
+                this.appauth,
+                errorViewModel
+            )
         }
+
+        return this.authenticatedViewModel!!
+    }
+
+    fun dispose() {
+        this.appauth.dispose()
     }
 }

@@ -20,15 +20,14 @@ import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import io.curity.identityserver.client.configuration.ApplicationConfig
-import io.curity.identityserver.client.errors.ApplicationException
-import io.curity.identityserver.client.errors.GENERIC_ERROR
-import io.curity.identityserver.client.errors.ServerCommunicationException
-import net.openid.appauth.*
-import net.openid.appauth.AuthorizationServiceConfiguration.fetchFromIssuer
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
+import net.openid.appauth.*
+import net.openid.appauth.AuthorizationServiceConfiguration.fetchFromIssuer
+import io.curity.identityserver.client.configuration.ApplicationConfig
+import io.curity.identityserver.client.errors.GENERIC_ERROR
+import io.curity.identityserver.client.errors.ServerCommunicationException
 
 /*
  * Manage AppAuth integration in one class in order to reduce code in the rest of the app
@@ -38,24 +37,16 @@ class AppAuthHandler(private val config: ApplicationConfig, val context: Context
     private var authService = AuthorizationService(context)
 
     /*
-     * Get OpenID Connect endpoints and ensure that dynamic client registration is configured
+     * Get OpenID Connect endpoints
      */
     suspend fun fetchMetadata(): AuthorizationServiceConfiguration {
 
         return suspendCoroutine { continuation ->
 
-            fetchFromIssuer(config.issuer) { metadata, ex ->
+            fetchFromIssuer(this.config.getIssuerUri()) { metadata, ex ->
 
                 when {
                     metadata != null -> {
-                        if (metadata.registrationEndpoint == null) {
-                            val error = ApplicationException(
-                                "Invalid Configuration Error",
-                                "No registration endpoint is configured in the Identity Server"
-                            )
-                            continuation.resumeWithException(error)
-                        }
-
                         Log.i(ContentValues.TAG, "Metadata retrieved successfully")
                         Log.d(ContentValues.TAG, metadata.toJsonString())
                         continuation.resume(metadata)
@@ -70,58 +61,21 @@ class AppAuthHandler(private val config: ApplicationConfig, val context: Context
     }
 
     /*
-     * Perform dynamic client registration and then store the response
-     */
-    suspend fun registerClient(metadata: AuthorizationServiceConfiguration): RegistrationResponse {
-
-        return suspendCoroutine { continuation ->
-
-            val extraParams = mutableMapOf<String, String>()
-            extraParams["scope"] = config.scope
-            extraParams["requires_consent"] = "false"
-            extraParams["post_logout_redirect_uris"] = config.postLogoutRedirectUri.toString()
-
-            val nonTemplatizedRequest =
-                RegistrationRequest.Builder(
-                    metadata,
-                    listOf(config.redirectUri)
-                )
-                    .setGrantTypeValues(listOf(GrantTypeValues.AUTHORIZATION_CODE))
-                    .setAdditionalParameters(extraParams)
-                    .build()
-
-            authService.performRegistrationRequest(nonTemplatizedRequest) { registrationResponse, ex ->
-                when {
-                    registrationResponse != null -> {
-                        Log.i(ContentValues.TAG, "Registration data retrieved successfully")
-                        Log.d(ContentValues.TAG, "ID: ${registrationResponse.clientId}, Secret: ${registrationResponse.clientSecret}")
-                        continuation.resume(registrationResponse)
-                    }
-                    else -> {
-                        val error = createAuthorizationError("Registration Error", ex)
-                        continuation.resumeWithException(error)
-                    }
-                }
-            }
-        }
-    }
-
-    /*
      * Trigger a redirect with standard parameters
-     * acr_values can be sent as an extra parameter, to control authentication methods
+     * acr_values could be sent as an extra parameter, to control the authentication method
      */
-    fun getAuthorizationRedirectIntent(
-        metadata: AuthorizationServiceConfiguration,
-        registrationResponse: RegistrationResponse): Intent {
+    fun getAuthorizationRedirectIntent(metadata: AuthorizationServiceConfiguration): Intent {
 
         // Use acr_values to select a particular authentication method at runtime
         val extraParams = mutableMapOf<String, String>()
         //extraParams.put("acr_values", "urn:se:curity:authentication:html-form:Username-Password")
 
-        val request = AuthorizationRequest.Builder(metadata, registrationResponse.clientId,
+        val request = AuthorizationRequest.Builder(
+            metadata,
+            this.config.clientID,
             ResponseTypeValues.CODE,
-            config.redirectUri)
-            .setScopes(config.scope)
+            this.config.getRedirectUri())
+            .setScopes(this.config.scope)
             .setAdditionalParameters(extraParams)
             .build()
 
@@ -147,13 +101,11 @@ class AppAuthHandler(private val config: ApplicationConfig, val context: Context
     /*
      * Handle the authorization code grant request to get tokens
      */
-    suspend fun redeemCodeForTokens(
-        registrationResponse: RegistrationResponse,
-        authResponse: AuthorizationResponse): TokenResponse? {
+    suspend fun redeemCodeForTokens(authResponse: AuthorizationResponse): TokenResponse? {
 
         return suspendCoroutine { continuation ->
 
-            val extraParams = mapOf("client_secret" to registrationResponse.clientSecret)
+            val extraParams = mutableMapOf<String, String>()
             val tokenRequest = authResponse.createTokenExchangeRequest(extraParams)
 
             authService.performTokenRequest(tokenRequest) { tokenResponse, ex ->
@@ -178,13 +130,12 @@ class AppAuthHandler(private val config: ApplicationConfig, val context: Context
      */
     suspend fun refreshAccessToken(
         metadata: AuthorizationServiceConfiguration,
-        registrationResponse: RegistrationResponse,
         refreshToken: String): TokenResponse? {
 
         return suspendCoroutine { continuation ->
 
-            val extraParams = mapOf("client_secret" to registrationResponse.clientSecret)
-            val tokenRequest = TokenRequest.Builder(metadata, registrationResponse.clientId)
+            val extraParams = mutableMapOf<String, String>()
+            val tokenRequest = TokenRequest.Builder(metadata, this.config.clientID)
                 .setGrantType(GrantTypeValues.REFRESH_TOKEN)
                 .setRefreshToken(refreshToken)
                 .setAdditionalParameters(extraParams)
@@ -222,13 +173,12 @@ class AppAuthHandler(private val config: ApplicationConfig, val context: Context
      * Do an OpenID Connect end session redirect and remove the SSO cookie
      */
     fun getEndSessionRedirectIntent(metadata: AuthorizationServiceConfiguration,
-                                    registrationResponse: RegistrationResponse,
                                     idToken: String?): Intent {
 
-        val extraParams = mapOf("client_id" to registrationResponse.clientId)
+        val extraParams = mutableMapOf<String, String>()
         val request = EndSessionRequest.Builder(metadata)
             .setIdTokenHint(idToken)
-            .setPostLogoutRedirectUri(config.postLogoutRedirectUri)
+            .setPostLogoutRedirectUri(this.config.getPostLogoutRedirectUri())
             .setAdditionalParameters(extraParams)
             .build()
 
@@ -245,6 +195,13 @@ class AppAuthHandler(private val config: ApplicationConfig, val context: Context
                 throw createAuthorizationError("End Session Request Error", ex)
             }
         }
+    }
+
+    /*
+     * Clean up AppAuth resources on exit
+     */
+    fun dispose() {
+        this.authService.dispose()
     }
 
     /*

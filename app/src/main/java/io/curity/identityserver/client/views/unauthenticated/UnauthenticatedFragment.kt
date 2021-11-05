@@ -29,9 +29,8 @@ import io.curity.identityserver.client.databinding.FragmentUnauthenticatedBindin
 import io.curity.identityserver.client.views.MainActivity
 import io.curity.identityserver.client.views.MainActivityViewModel
 import io.curity.identityserver.client.views.error.ErrorFragmentViewModel
-import java.lang.ref.WeakReference
 
-class UnauthenticatedFragment : androidx.fragment.app.Fragment(), UnauthenticatedFragmentEvents {
+class UnauthenticatedFragment : androidx.fragment.app.Fragment() {
 
     private lateinit var binding: FragmentUnauthenticatedBinding
 
@@ -47,27 +46,34 @@ class UnauthenticatedFragment : androidx.fragment.app.Fragment(), Unauthenticate
         savedInstanceState: Bundle?
     ): View {
 
+        // Create the view model the first time the view is created
         val mainViewModel: MainActivityViewModel by activityViewModels()
         val errorViewModel: ErrorFragmentViewModel by viewModels()
+        val viewModel = mainViewModel.getUnauthenticatedViewModel(errorViewModel)
 
+        // Handle events sent from the view model
+        viewModel.loginStarted.observe(this, { event ->
+            event?.getData()?.let {
+                startLoginRedirect(it)
+            }
+        })
+        viewModel.loginCompleted.observe(this, { event ->
+            event?.getData()?.let {
+                onLoggedIn()
+            }
+        })
+
+        // Complete the view setup
         this.binding = FragmentUnauthenticatedBinding.inflate(inflater, container, false)
-        this.binding.model = UnauthenticatedFragmentViewModel(
-            WeakReference(this),
-            mainViewModel.appauth,
-            errorViewModel)
+        this.binding.model = viewModel
         return this.binding.root
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        this.binding.model!!.registerIfRequired()
-    }
-
-    override fun startLoginRedirect(intent: Intent) {
+    private fun startLoginRedirect(intent: Intent) {
         this.loginLauncher.launch(intent)
     }
 
-    override fun onLoggedIn() {
+    private fun onLoggedIn() {
         val mainActivity = this.activity as MainActivity
         mainActivity.onLoggedInNavigate()
     }
