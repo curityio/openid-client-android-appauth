@@ -1,2 +1,21 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        google()
+        mavenCentral()
+    }
+}
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        flatDir {
+            dirs '/Users/gary.archer/dev/android-cat/identityserver.haapi.android.ui.widget/build/outputs/aar'
+            dirs '/Users/gary.archer/dev/android-cat/identityserver.haapi.android.sdk/build/outputs/aar'
+            dirs '/Users/gary.archer/dev/android-cat/identityserver.haapi.android.driver/build/outputs/aar'
+        }
+        google()
+        mavenCentral()
+    }
+}
+rootProject.name = "Curity AppAuth"
 include ':app'
-rootProject.name='Curity AppAuth'
