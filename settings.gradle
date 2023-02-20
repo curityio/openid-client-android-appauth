@@ -8,11 +8,6 @@ pluginManagement {
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
-        flatDir {
-            dirs '/Users/gary.archer/dev/android-cat/identityserver.haapi.android.ui.widget/build/outputs/aar'
-            dirs '/Users/gary.archer/dev/android-cat/identityserver.haapi.android.sdk/build/outputs/aar'
-            dirs '/Users/gary.archer/dev/android-cat/identityserver.haapi.android.driver/build/outputs/aar'
-        }
         google()
         mavenCentral()
     }
